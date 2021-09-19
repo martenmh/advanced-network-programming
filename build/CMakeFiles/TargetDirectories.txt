@@ -1,0 +1,9 @@
+/home/marten/Documents/anp/build/CMakeFiles/install/local.dir
+/home/marten/Documents/anp/build/CMakeFiles/install/strip.dir
+/home/marten/Documents/anp/build/CMakeFiles/anp_server.dir
+/home/marten/Documents/anp/build/CMakeFiles/list_install_components.dir
+/home/marten/Documents/anp/build/CMakeFiles/anpnetstack.dir
+/home/marten/Documents/anp/build/CMakeFiles/rebuild_cache.dir
+/home/marten/Documents/anp/build/CMakeFiles/install.dir
+/home/marten/Documents/anp/build/CMakeFiles/anp_client.dir
+/home/marten/Documents/anp/build/CMakeFiles/edit_cache.dir

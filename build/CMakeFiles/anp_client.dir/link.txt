@@ -1,0 +1,1 @@
+/usr/bin/cc    CMakeFiles/anp_client.dir/server-client/tcp_client.c.o CMakeFiles/anp_client.dir/server-client/common.c.o  -o anp_client 
