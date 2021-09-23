@@ -47,6 +47,8 @@ init.h
 /home/marten/Documents/anp/src/init.h
 
 /home/marten/Documents/anp/src/anpwrapper.h
+linklist.h
+/home/marten/Documents/anp/src/linklist.h
 
 /home/marten/Documents/anp/src/arp.c
 arp.h

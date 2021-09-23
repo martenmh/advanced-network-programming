@@ -24,6 +24,8 @@
 #include "anpwrapper.h"
 #include "init.h"
 
+static LIST_HEAD(sock_cache);
+static uint32_t sock_cache_size = 0;
 
 static int (*__start_main)(int (*main) (int, char * *, char * *), int argc, \
                            char * * ubp_av, void (*init) (void), void (*fini) (void), \
@@ -54,8 +56,15 @@ static int is_socket_supported(int domain, int type, int protocol)
 // TODO: ANP milestone 3 -- implement the socket, and connect calls
 int socket(int domain, int type, int protocol) {
     if (is_socket_supported(domain, type, protocol)) {
-        //TODO: implement your logic here
-        return -ENOSYS;
+
+        struct anp_socket_entry *entry = calloc(1, sizeof(struct anp_socket_entry));
+        list_init(&entry->list);
+        entry->sockfd = MIN_SOCKFD + sock_cache_size;
+        sock_cache_size++;
+        list_add_tail(&entry->list, &sock_cache);
+        printf("Added sockfd to list : %d\n", entry->sockfd);
+        return entry->sockfd;
+        // return -ENOSYS;
     }
     // if this is not what anpnetstack support, let it go, let it go!
     return _socket(domain, type, protocol);
@@ -63,10 +72,31 @@ int socket(int domain, int type, int protocol) {
 
 int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
+
+    // Three way handshake
+    // 1. SYN
+    // 2. SYN-ACK
+    // 3. ACK
+    // TODO: implement your logic here
+    // store in linked list
+    // do_tcp_csum();
     //FIXME -- you can remember the file descriptors that you have generated in the socket call and match them here
-    bool is_anp_sockfd = false;
+    bool is_anp_sockfd = true;
+    struct list_head *item;
+    struct anp_socket_entry *entry;
+    size_t i = 0;
+    list_for_each(item, &sock_cache){
+        entry = list_entry(item, struct anp_socket_entry, list);
+        if(entry->sockfd != MIN_SOCKFD + i) {
+           is_anp_sockfd = false;
+        }
+        i++;
+    }
+
     if(is_anp_sockfd){
         //TODO: implement your logic here
+
+        printf("Trying to connect with ANP sockfd: %d\n", sockfd);
         return -ENOSYS;
     }
     // the default path
@@ -101,6 +131,7 @@ int close (int sockfd){
     //FIXME -- you can remember the file descriptors that you have generated in the socket call and match them here
     bool is_anp_sockfd = false;
     if(is_anp_sockfd) {
+      // deallocate sock_cache
         //TODO: implement your logic here
         return -ENOSYS;
     }
