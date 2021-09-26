@@ -93,7 +93,7 @@ union tcp_options{
   struct variable_options options;
 } __attribute__((packed));
 
-static struct subuff* alloc_tcp_sub();
+struct subuff* alloc_tcp_sub();
 
 struct tcp_sock_state {
   // signalling
