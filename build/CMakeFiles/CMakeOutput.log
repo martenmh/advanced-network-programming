@@ -685,3 +685,31 @@ make[2]: Leaving directory '/home/marten/Documents/anp/build/CMakeFiles/CMakeTmp
 make[1]: Leaving directory '/home/marten/Documents/anp/build/CMakeFiles/CMakeTmp'
 
 
+Determining if the include file pthread.h exists passed with the following output:
+Change Dir: /home/marten/school/vu/ANP/sharedfolder/anp/build//CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make -f Makefile cmTC_74f73/fast && /usr/bin/make  -f CMakeFiles/cmTC_74f73.dir/build.make CMakeFiles/cmTC_74f73.dir/build
+make[1]: Entering directory '/home/marten/school/vu/ANP/sharedfolder/anp/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_74f73.dir/CheckIncludeFile.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_74f73.dir/CheckIncludeFile.c.o -c /home/marten/school/vu/ANP/sharedfolder/anp/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_74f73
+/var/lib/snapd/snap/clion/164/bin/cmake/linux/bin/cmake -E cmake_link_script CMakeFiles/cmTC_74f73.dir/link.txt --verbose=1
+/usr/bin/cc CMakeFiles/cmTC_74f73.dir/CheckIncludeFile.c.o -o cmTC_74f73 
+make[1]: Leaving directory '/home/marten/school/vu/ANP/sharedfolder/anp/build/CMakeFiles/CMakeTmp'
+
+
+
+Determining if the function pthread_create exists in the pthread passed with the following output:
+Change Dir: /home/marten/school/vu/ANP/sharedfolder/anp/build//CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make -f Makefile cmTC_0ff7d/fast && /usr/bin/make  -f CMakeFiles/cmTC_0ff7d.dir/build.make CMakeFiles/cmTC_0ff7d.dir/build
+make[1]: Entering directory '/home/marten/school/vu/ANP/sharedfolder/anp/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_0ff7d.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create -o CMakeFiles/cmTC_0ff7d.dir/CheckFunctionExists.c.o -c /var/lib/snapd/snap/clion/164/bin/cmake/linux/share/cmake-3.20/Modules/CheckFunctionExists.c
+Linking C executable cmTC_0ff7d
+/var/lib/snapd/snap/clion/164/bin/cmake/linux/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0ff7d.dir/link.txt --verbose=1
+/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create CMakeFiles/cmTC_0ff7d.dir/CheckFunctionExists.c.o -o cmTC_0ff7d  -lpthread 
+make[1]: Leaving directory '/home/marten/school/vu/ANP/sharedfolder/anp/build/CMakeFiles/CMakeTmp'
+
+
+

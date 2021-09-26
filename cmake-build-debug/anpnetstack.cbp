@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="anpnetstack"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/strip">
+				<Option working_dir="/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 install/strip"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/local">
+				<Option working_dir="/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 install/local"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install">
+				<Option working_dir="/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 install"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="list_install_components">
+				<Option working_dir="/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 list_install_components"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="anpnetstack">
+				<Option output="/home/marten/school/vu/ANP/sharedfolder/anp/lib/libanpnetstack.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/marten/school/vu/ANP/sharedfolder/anp/src"/>
+					<Add directory="/home/marten/school/vu/ANP/sharedfolder/anp/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/x86_64-pc-linux-gnu"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include-fixed"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 anpnetstack"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="anpnetstack/fast">
+				<Option output="/home/marten/school/vu/ANP/sharedfolder/anp/lib/libanpnetstack.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/marten/school/vu/ANP/sharedfolder/anp/src"/>
+					<Add directory="/home/marten/school/vu/ANP/sharedfolder/anp/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/x86_64-pc-linux-gnu"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include-fixed"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 anpnetstack/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="anp_server">
+				<Option output="/home/marten/school/vu/ANP/sharedfolder/anp/build/anp_server" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/marten/school/vu/ANP/sharedfolder/anp/build/"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/x86_64-pc-linux-gnu"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include-fixed"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 anp_server"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="anp_server/fast">
+				<Option output="/home/marten/school/vu/ANP/sharedfolder/anp/build/anp_server" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/marten/school/vu/ANP/sharedfolder/anp/build/"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/x86_64-pc-linux-gnu"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include-fixed"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 anp_server/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="anp_client">
+				<Option output="/home/marten/school/vu/ANP/sharedfolder/anp/build/anp_client" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/marten/school/vu/ANP/sharedfolder/anp/build/"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/x86_64-pc-linux-gnu"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include-fixed"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 anp_client"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="anp_client/fast">
+				<Option output="/home/marten/school/vu/ANP/sharedfolder/anp/build/anp_client" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/marten/school/vu/ANP/sharedfolder/anp/build/"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/x86_64-pc-linux-gnu"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include-fixed"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 anp_client/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/marten/school/vu/ANP/sharedfolder/anp/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/server-client/common.c">
+			<Option target="anp_server"/>
+			<Option target="anp_client"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/server-client/common.h">
+			<Option target="anp_server"/>
+			<Option target="anp_client"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/server-client/tcp_client.c">
+			<Option target="anp_client"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/server-client/tcp_server.c">
+			<Option target="anp_server"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/anp_netdev.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/anp_netdev.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/anpwrapper.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/anpwrapper.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/arp.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/arp.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/icmp.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/icmp.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/init.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/init.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/ip_rx.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/ip_tx.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/route.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/route.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/subuff.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/subuff.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/tap_netdev.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/tap_netdev.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/tcp.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/tcp.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/timer.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/timer.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/utilities.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/src/utilities.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/marten/school/vu/ANP/sharedfolder/anp/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

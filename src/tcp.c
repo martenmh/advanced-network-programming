@@ -13,21 +13,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
-
-#ifndef ANPNETSTACK_ANPWRAPPER_H
-#define ANPNETSTACK_ANPWRAPPER_H
-
-#include "linklist.h"
+ */
 #include "tcp.h"
 
-#define MIN_SOCKFD 1000000
-
-struct anp_socket_entry {
-  struct list_head list;
-  int sockfd;
-};
-
-void _function_override_init();
-
-#endif //ANPNETSTACK_ANPWRAPPER_H
+struct subuff* alloc_tcp_sub(){
+  struct subuff *sub = alloc_sub(ETH_HDR_LEN + IP_HDR_LEN + TCP_HDR_LEN);
+  sub_reserve(sub, ETH_HDR_LEN + IP_HDR_LEN + TCP_HDR_LEN);
+  sub->protocol = htons(IPP_TCP);
+  return sub;
+}

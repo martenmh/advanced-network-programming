@@ -18,11 +18,12 @@
 //XXX: _GNU_SOURCE must be defined before including dlfcn to get RTLD_NEXT symbols
 #define _GNU_SOURCE
 
-#include <dlfcn.h>
-#include "systems_headers.h"
-#include "linklist.h"
 #include "anpwrapper.h"
 #include "init.h"
+#include "ip.h"
+#include "linklist.h"
+#include "systems_headers.h"
+#include <dlfcn.h>
 
 static LIST_HEAD(sock_cache);
 static uint32_t sock_cache_size = 0;
@@ -56,7 +57,6 @@ static int is_socket_supported(int domain, int type, int protocol)
 // TODO: ANP milestone 3 -- implement the socket, and connect calls
 int socket(int domain, int type, int protocol) {
     if (is_socket_supported(domain, type, protocol)) {
-
         struct anp_socket_entry *entry = calloc(1, sizeof(struct anp_socket_entry));
         list_init(&entry->list);
         entry->sockfd = MIN_SOCKFD + sock_cache_size;
@@ -67,38 +67,47 @@ int socket(int domain, int type, int protocol) {
         // return -ENOSYS;
     }
     // if this is not what anpnetstack support, let it go, let it go!
+    printf("Unsupported socket. domain: %d, type: %d, protocol %d.", domain, type, protocol);
     return _socket(domain, type, protocol);
 }
-
+bool is_anp_sock(int sockfd){
+  bool result = false;
+  struct list_head *item;
+  struct anp_socket_entry *entry;
+  list_for_each(item, &sock_cache) {
+    entry = list_entry(item, struct anp_socket_entry, list);
+    if (entry->sockfd == sockfd)
+      result = true;
+  }
+  return result;
+}
 int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
-
-    // Three way handshake
-    // 1. SYN
-    // 2. SYN-ACK
-    // 3. ACK
-    // TODO: implement your logic here
-    // store in linked list
-    // do_tcp_csum();
-    //FIXME -- you can remember the file descriptors that you have generated in the socket call and match them here
-    bool is_anp_sockfd = true;
-    struct list_head *item;
-    struct anp_socket_entry *entry;
-    size_t i = 0;
-    list_for_each(item, &sock_cache){
-        entry = list_entry(item, struct anp_socket_entry, list);
-        if(entry->sockfd != MIN_SOCKFD + i) {
-           is_anp_sockfd = false;
-        }
-        i++;
-    }
-
+    bool is_anp_sockfd = is_anp_sock(sockfd);
+    struct subuff *sub;
+    struct tcphdr hdr;
     if(is_anp_sockfd){
-        //TODO: implement your logic here
-
-        printf("Trying to connect with ANP sockfd: %d\n", sockfd);
+        sub = alloc_tcp_sub();
+        hdr.syn = 0x1;
+        hdr.seq_num = 0;
+        sub_push(sub, TCP_HDR_LEN);
+        // send SYN with sequence number 0
+        // receive SYN and ACK with seq num 1
+        // send ACK with seq num 2
+        //hdr
+        uint32_t dst_ip;
+        if (addr->sa_family == AF_INET) {
+            dst_ip = (((struct sockaddr_in *)addr)->sin_addr).s_addr;
+        } else {
+            printf("Unsupported sa_family");
+            goto drop_connection;
+        }
+        ip_output(dst_ip, sub); // sending SYN
+        // wait on SYN-ACK, see ip_rx.c for receiving end.
+        // send ACK and return
         return -ENOSYS;
     }
+    drop_connection:
     // the default path
     return _connect(sockfd, addr, addrlen);
 }
