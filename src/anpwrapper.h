@@ -20,11 +20,18 @@
 
 #include "linklist.h"
 #include "tcp.h"
+#include "utilities.h"
+#include "config.h"
 
 #define MIN_SOCKFD 1000000
 
+static LIST_HEAD(sockets);
+static uint32_t sockets_size = 0;
+
+
 struct anp_socket_entry {
   struct list_head list;
+  struct tcp_sock_state tcp_state;
   int sockfd;
 };
 

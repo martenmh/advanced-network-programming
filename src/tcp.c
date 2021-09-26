@@ -16,9 +16,19 @@
  */
 #include "tcp.h"
 
+bool tcp_headers_related(struct tcphdr *tx_hdr, struct tcphdr *rx_hdr) {
+  return (tx_hdr->seq_num + 1 == rx_hdr->seq_num && // received sequence number should be seq_num + 1
+            tx_hdr->src_port == rx_hdr->dst_port && // received destination port should be our source
+            tx_hdr->dst_port == rx_hdr->src_port);  // received source port should be our destination
+}
+
+int tcp_rx(struct subuff *sub){
+    // TODO: Replace ip_rx.c TCP path
+}
+
 struct subuff* alloc_tcp_sub(){
-  struct subuff *sub = alloc_sub(ETH_HDR_LEN + IP_HDR_LEN + TCP_HDR_LEN);
-  sub_reserve(sub, ETH_HDR_LEN + IP_HDR_LEN + TCP_HDR_LEN);
-  sub->protocol = htons(IPP_TCP);
-  return sub;
+    struct subuff *sub = alloc_sub(ETH_HDR_LEN + IP_HDR_LEN + TCP_HDR_LEN);
+    sub_reserve(sub, ETH_HDR_LEN + IP_HDR_LEN + TCP_HDR_LEN);
+    sub->protocol = htons(IPP_TCP);
+    return sub;
 }

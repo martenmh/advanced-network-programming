@@ -21,6 +21,15 @@
 #ifndef ANPNETSTACK_TCP_H
 #define ANPNETSTACK_TCP_H
 
+
+#define debug_tcp_hdr(msg, hdr)                                                \
+  printf("TCP (HDR)"msg"(src_port: %hu, dst_port: %u, seq_num: %u, ack_nuk: %u, data_offset %hhu, \
+        reserved: %hhu, [urg: %hhu, ack: %hhu, psh: %hhu, rst: %hhu, syn: %hhu, fin: %hu], window: %hu, csum: %hu, urg_ptr: %hu", \
+                 hdr->src_port, hdr->dst_port, hdr->seq_num, hdr->ack_num, hdr->data_offset, hdr->reserved, hdr->urg, hdr->ack, hdr->psh, hdr->rst, hdr->syn, hdr->fin, \
+                 hdr->window, hdr->checksum, hdr->urgent_ptr  \
+                 )
+
+
 // Bit Flags
 enum state_flag {
   NS = 1 << 9,
@@ -28,7 +37,7 @@ enum state_flag {
   //
 };
 
-enum socket_state {
+enum TCP_STATE {
   LISTEN,
   SYN_SENT,
   SYN_RECEIVED,
@@ -65,8 +74,6 @@ struct tcphdr {
             syn : 1,
             fin : 1;
 #endif
-
-  uint8_t control_bits : 6; // see control_flags
   uint16_t window;
   uint16_t checksum;
   uint16_t urgent_ptr;
@@ -88,6 +95,24 @@ union tcp_options{
 
 static struct subuff* alloc_tcp_sub();
 
+struct tcp_sock_state {
+  // signalling
+  pthread_mutex_t sig_mut;
+  pthread_cond_t sig_cond;
+  bool condition;
+  // state information
+  enum TCP_STATE state; // current state in TCP state machine
+  struct tcphdr prev_hdr;
+};
+
+int tcp_rx(struct subuff *sub);
+bool tcp_headers_related(struct tcphdr* tx_hdr, struct tcphdr* rx_hdr);
+
 #define TCP_HDR_LEN sizeof(struct tcphdr)
+// TODO: Implement
+#define TCP_PAYLOAD_LEN(_tcp) assert(false)
+#define TCP_HDR_FROM_SUB(_sub) (struct tcphdr *)(_sub->head + IP_HDR_LEN + ETH_HDR_LEN);
+
+#define TCP_CONNECT_TIMEOUT 10000 // 10 sec
 
 #endif // ANPNETSTACK_TCP_H

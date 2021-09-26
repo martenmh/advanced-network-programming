@@ -25,9 +25,6 @@
 #include "systems_headers.h"
 #include <dlfcn.h>
 
-static LIST_HEAD(sock_cache);
-static uint32_t sock_cache_size = 0;
-
 static int (*__start_main)(int (*main) (int, char * *, char * *), int argc, \
                            char * * ubp_av, void (*init) (void), void (*fini) (void), \
                            void (*rtld_fini) (void), void (* stack_end));
@@ -59,9 +56,9 @@ int socket(int domain, int type, int protocol) {
     if (is_socket_supported(domain, type, protocol)) {
         struct anp_socket_entry *entry = calloc(1, sizeof(struct anp_socket_entry));
         list_init(&entry->list);
-        entry->sockfd = MIN_SOCKFD + sock_cache_size;
-        sock_cache_size++;
-        list_add_tail(&entry->list, &sock_cache);
+        entry->sockfd = MIN_SOCKFD + sockets_size;
+        sockets_size++;
+        list_add_tail(&entry->list, &sockets);
         printf("Added sockfd to list : %d\n", entry->sockfd);
         return entry->sockfd;
         // return -ENOSYS;
@@ -70,42 +67,73 @@ int socket(int domain, int type, int protocol) {
     printf("Unsupported socket. domain: %d, type: %d, protocol %d.", domain, type, protocol);
     return _socket(domain, type, protocol);
 }
-bool is_anp_sock(int sockfd){
-  bool result = false;
+
+struct anp_socket_entry* get_sock(int sockfd){
+  struct anp_socket_entry* sock = NULL;
   struct list_head *item;
   struct anp_socket_entry *entry;
-  list_for_each(item, &sock_cache) {
+  list_for_each(item, &sockets) {
     entry = list_entry(item, struct anp_socket_entry, list);
     if (entry->sockfd == sockfd)
-      result = true;
+      sock = entry;
   }
-  return result;
+  return sock;
 }
-int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
-{
+
+bool is_anp_sock(int sockfd){
+  return get_sock(sockfd) != NULL;
+}
+
+
+int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
+    if (addr->sa_family != AF_INET) {
+      printf("Unsupported sa_family");
+      goto drop_connection;
+    }
+
     bool is_anp_sockfd = is_anp_sock(sockfd);
     struct subuff *sub;
-    struct tcphdr hdr;
+    struct tcphdr *hdr;
     if(is_anp_sockfd){
-        sub = alloc_tcp_sub();
-        hdr.syn = 0x1;
-        hdr.seq_num = 0;
-        sub_push(sub, TCP_HDR_LEN);
-        // send SYN with sequence number 0
-        // receive SYN and ACK with seq num 1
-        // send ACK with seq num 2
-        //hdr
-        uint32_t dst_ip;
-        if (addr->sa_family == AF_INET) {
-            dst_ip = (((struct sockaddr_in *)addr)->sin_addr).s_addr;
-        } else {
-            printf("Unsupported sa_family");
-            goto drop_connection;
+        struct anp_socket_entry* sock_entry = get_sock(sockfd);
+        hdr = &sock_entry->tcp_state.prev_hdr;
+
+        if(sock_entry->tcp_state.state != CLOSED){
+            printf("Socket is not closed");
+            return -1;
         }
-        ip_output(dst_ip, sub); // sending SYN
-        // wait on SYN-ACK, see ip_rx.c for receiving end.
-        // send ACK and return
-        return -ENOSYS;
+        sub = alloc_tcp_sub();
+        sub_push(sub, TCP_HDR_LEN);
+
+        hdr->syn = 0x1;
+        hdr->seq_num = 0;
+        hdr->dst_port = (((struct sockaddr_in *)addr)->sin_port);
+        hdr->dst_port = 0;
+        hdr->ack_num = 0;
+        hdr->checksum = 0;
+        uint32_t dest_addr = (((struct sockaddr_in *)addr)->sin_addr).s_addr;
+        uint32_t src_addr = ip_str_to_n32(ANP_IP_CLIENT_EXT);
+        hdr->checksum = do_tcp_csum((uint8_t *)&hdr, TCP_HDR_LEN, IPP_TCP, src_addr, dest_addr);
+
+        debug_tcp_hdr("", hdr);
+
+        ip_output(dest_addr, sub); // sending SYN
+
+        sock_entry->tcp_state.state = SYN_SENT;
+
+        pthread_mutex_lock(&sock_entry->tcp_state.sig_mut);
+        while(!sock_entry->tcp_state.condition) {
+          // wait on SYN-ACK, see ip_rx.c for receiving end.
+            pthread_cond_timedwait(&sock_entry->tcp_state.sig_cond,
+                            &sock_entry->tcp_state.sig_mut,
+                                 (const struct timespec *)TCP_CONNECT_TIMEOUT);
+        }
+        pthread_mutex_unlock(&sock_entry->tcp_state.sig_mut);
+        if(!sock_entry->tcp_state.condition){
+            return -1;
+        }
+
+        return 0;
     }
     drop_connection:
     // the default path
@@ -115,8 +143,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 // TODO: ANP milestone 5 -- implement the send, recv, and close calls
 ssize_t send(int sockfd, const void *buf, size_t len, int flags)
 {
-    //FIXME -- you can remember the file descriptors that you have generated in the socket call and match them here
-    bool is_anp_sockfd = false;
+    bool is_anp_sockfd = is_anp_sock(sockfd);
     if(is_anp_sockfd) {
         //TODO: implement your logic here
         return -ENOSYS;
