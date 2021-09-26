@@ -24,7 +24,7 @@
 
 #define debug_tcp_hdr(msg, hdr)                                                \
   printf("TCP (HDR)"msg"(src_port: %hu, dst_port: %u, seq_num: %u, ack_nuk: %u, data_offset %hhu, \
-        reserved: %hhu, [urg: %hhu, ack: %hhu, psh: %hhu, rst: %hhu, syn: %hhu, fin: %hu], window: %hu, csum: %hu, urg_ptr: %hu", \
+        reserved: %hhu, [urg: %hhu, ack: %hhu, psh: %hhu, rst: %hhu, syn: %hhu, fin: %hu], window: %hu, csum: %hu, urg_ptr: %hu\n", \
                  hdr->src_port, hdr->dst_port, hdr->seq_num, hdr->ack_num, hdr->data_offset, hdr->reserved, hdr->urg, hdr->ack, hdr->psh, hdr->rst, hdr->syn, hdr->fin, \
                  hdr->window, hdr->checksum, hdr->urgent_ptr  \
                  )

@@ -23,6 +23,7 @@
 #include "ip.h"
 #include "linklist.h"
 #include "systems_headers.h"
+#include "timer.h"
 #include <dlfcn.h>
 
 static int (*__start_main)(int (*main) (int, char * *, char * *), int argc, \
@@ -60,6 +61,7 @@ int socket(int domain, int type, int protocol) {
         sockets_size++;
         list_add_tail(&entry->list, &sockets);
         printf("Added sockfd to list : %d\n", entry->sockfd);
+        entry->tcp_state.state = CLOSED;
         return entry->sockfd;
         // return -ENOSYS;
     }
@@ -69,15 +71,15 @@ int socket(int domain, int type, int protocol) {
 }
 
 struct anp_socket_entry* get_sock(int sockfd){
-  struct anp_socket_entry* sock = NULL;
   struct list_head *item;
   struct anp_socket_entry *entry;
   list_for_each(item, &sockets) {
     entry = list_entry(item, struct anp_socket_entry, list);
-    if (entry->sockfd == sockfd)
-      sock = entry;
+    if (entry->sockfd == sockfd) {
+        return entry;
+    }
   }
-  return sock;
+  return NULL;
 }
 
 bool is_anp_sock(int sockfd){
@@ -90,20 +92,21 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
       printf("Unsupported sa_family");
       goto drop_connection;
     }
-
     bool is_anp_sockfd = is_anp_sock(sockfd);
-    struct subuff *sub;
-    struct tcphdr *hdr;
+
     if(is_anp_sockfd){
         struct anp_socket_entry* sock_entry = get_sock(sockfd);
-        hdr = &sock_entry->tcp_state.prev_hdr;
-
         if(sock_entry->tcp_state.state != CLOSED){
-            printf("Socket is not closed");
+            printf("Socket is not closed; Expected socket for connect");
             return -1;
         }
-        sub = alloc_tcp_sub();
+        struct subuff *sub = alloc_tcp_sub();
+        if (!sub) {
+          printf("Error: allocation of the TCP sub failed \n");
+          return -1;
+        }
         sub_push(sub, TCP_HDR_LEN);
+        struct tcphdr *hdr = (struct tcphdr *)sub->data;
 
         hdr->syn = 0x1;
         hdr->seq_num = 0;
@@ -116,19 +119,39 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
         hdr->checksum = do_tcp_csum((uint8_t *)&hdr, TCP_HDR_LEN, IPP_TCP, src_addr, dest_addr);
 
         debug_tcp_hdr("", hdr);
+        printf("Sending out SYN\n");
+        sock_entry->tcp_state.prev_hdr = *hdr;
+        int err = ip_output(dest_addr, sub); // sending SYN
 
-        ip_output(dest_addr, sub); // sending SYN
-
+        if(err == -EAGAIN){
+          printf("Failed to find address in ARP cache, trying again..\n");
+          sleep(1); // TODO: Change this to a 100ms and use a timer?
+          err = ip_output(dest_addr, sub);
+          if(err == -EAGAIN) {
+            printf("Failed to find address in ARP cache, trying again..\n");
+            sleep(1);
+            err = ip_output(dest_addr, sub);
+          } else if(err < 0){
+              printf("Error: ip_output failed: err: %d\n", err);
+              return -1;
+          }
+        } else if(err < 0){
+          printf("ip_output returns error: %d\n", err);
+          return err;
+        }
         sock_entry->tcp_state.state = SYN_SENT;
+        printf("SYN sent\n");
 
         pthread_mutex_lock(&sock_entry->tcp_state.sig_mut);
+        printf("mutex\n");
         while(!sock_entry->tcp_state.condition) {
           // wait on SYN-ACK, see ip_rx.c for receiving end.
-            pthread_cond_timedwait(&sock_entry->tcp_state.sig_cond,
-                            &sock_entry->tcp_state.sig_mut,
-                                 (const struct timespec *)TCP_CONNECT_TIMEOUT);
+            pthread_cond_wait(&sock_entry->tcp_state.sig_cond,
+                            &sock_entry->tcp_state.sig_mut);
         }
         pthread_mutex_unlock(&sock_entry->tcp_state.sig_mut);
+        printf("done waiting, received it\n");
+
         if(!sock_entry->tcp_state.condition){
             return -1;
         }

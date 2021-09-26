@@ -11,6 +11,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/anpnetstack.dir/src/ip_rx.c.o"
   "CMakeFiles/anpnetstack.dir/src/ip_tx.c.o"
   "CMakeFiles/anpnetstack.dir/src/icmp.c.o"
+  "CMakeFiles/anpnetstack.dir/src/tcp.c.o"
   "../lib/libanpnetstack.pdb"
   "../lib/libanpnetstack.so.1.0.1"
   "../lib/libanpnetstack.so"
