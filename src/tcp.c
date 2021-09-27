@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 #include "tcp.h"
+#include "anpwrapper.h"
 
 bool tcp_headers_related(struct tcphdr *tx_hdr, struct tcphdr *rx_hdr) {
   return (tx_hdr->seq_num + 1 == rx_hdr->seq_num && // received sequence number should be seq_num + 1
@@ -23,12 +24,29 @@ bool tcp_headers_related(struct tcphdr *tx_hdr, struct tcphdr *rx_hdr) {
 }
 
 int tcp_rx(struct subuff *sub){
-    // TODO: Replace ip_rx.c TCP path
+  struct list_head *item;
+  struct anp_socket_entry *entry;
+  list_for_each(item, &sockets) {
+    entry = list_entry(item, struct anp_socket_entry, list);
+    struct tcphdr* hdr = TCP_HDR_FROM_SUB(sub);
+    if(!tcp_headers_related(&entry->tcp_state.prev_hdr, hdr)){
+      continue;
+    }
+    if(entry->tcp_state.state == SYN_SENT) {
+      if(!hdr->ack || !hdr->syn) continue;
+
+      pthread_mutex_lock(&entry->tcp_state.sig_mut);
+      entry->tcp_state.condition = true;
+      pthread_cond_signal(
+          &entry->tcp_state.sig_cond); // signal connect() call
+      pthread_mutex_unlock(&entry->tcp_state.sig_mut);
+    }
+  }
 }
 
 struct subuff* alloc_tcp_sub(){
     struct subuff *sub = alloc_sub(ETH_HDR_LEN + IP_HDR_LEN + TCP_HDR_LEN);
     sub_reserve(sub, ETH_HDR_LEN + IP_HDR_LEN + TCP_HDR_LEN);
-    sub->protocol = htons(IPP_TCP);
+    sub->protocol = IPP_TCP;
     return sub;
 }

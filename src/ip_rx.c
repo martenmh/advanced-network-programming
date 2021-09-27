@@ -63,25 +63,7 @@ int ip_rx(struct subuff *sub)
         case IPP_TCP:
             debug_ip_hdr("in", ih);
             printf("incoming TCP packet, further logic NYI \n");
-
-            struct list_head *item;
-            struct anp_socket_entry *entry;
-            list_for_each(item, &sockets) {
-              entry = list_entry(item, struct anp_socket_entry, list);
-              struct tcphdr* hdr = TCP_HDR_FROM_SUB(sub);
-              if(!tcp_headers_related(&entry->tcp_state.prev_hdr, hdr)){
-                continue;
-              }
-              if(entry->tcp_state.state == SYN_SENT) {
-                if(!hdr->ack || !hdr->syn) continue;
-
-                pthread_mutex_lock(&entry->tcp_state.sig_mut);
-                entry->tcp_state.condition = true;
-                pthread_cond_signal(
-                    &entry->tcp_state.sig_cond); // signal connect() call
-                pthread_mutex_unlock(&entry->tcp_state.sig_mut);
-              }
-            }
+            tcp_rx(sub);
             return 0;
         default:
             #ifdef ANP_PRINT_UNKNOWN_PACKETS

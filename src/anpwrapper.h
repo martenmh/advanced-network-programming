@@ -36,5 +36,5 @@ struct anp_socket_entry {
 };
 
 void _function_override_init();
-
+#define try_again(n, secdelay, cond, func) do{ for(int i = 1; cond && i <= n; i++){ func; sleep(secdelay); }} while(false)
 #endif //ANPNETSTACK_ANPWRAPPER_H

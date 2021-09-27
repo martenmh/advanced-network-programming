@@ -105,40 +105,49 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
           printf("Error: allocation of the TCP sub failed \n");
           return -1;
         }
+
         sub_push(sub, TCP_HDR_LEN);
         struct tcphdr *hdr = (struct tcphdr *)sub->data;
 
         hdr->syn = 0x1;
-        hdr->seq_num = 0;
         hdr->dst_port = (((struct sockaddr_in *)addr)->sin_port);
-        hdr->dst_port = 0;
+        // random port between 1024 and 65536
+        hdr->src_port = rand()%(65536-1024 + 1) + 1024;
+        hdr->seq_num = TCP_SEQ_START;
         hdr->ack_num = 0;
+        hdr->data_offset = TCP_HDR_LEN - 12;
         hdr->checksum = 0;
+        hdr->window = 1024;
         uint32_t dest_addr = (((struct sockaddr_in *)addr)->sin_addr).s_addr;
         uint32_t src_addr = ip_str_to_n32(ANP_IP_CLIENT_EXT);
         hdr->checksum = do_tcp_csum((uint8_t *)&hdr, TCP_HDR_LEN, IPP_TCP, src_addr, dest_addr);
 
-        debug_tcp_hdr("", hdr);
+        debug_tcp_hdr("out", hdr);
         printf("Sending out SYN\n");
         sock_entry->tcp_state.prev_hdr = *hdr;
+
+        sub->protocol = IPP_TCP;
         int err = ip_output(dest_addr, sub); // sending SYN
 
         if(err == -EAGAIN){
-          printf("Failed to find address in ARP cache, trying again..\n");
-          sleep(1); // TODO: Change this to a 100ms and use a timer?
-          err = ip_output(dest_addr, sub);
-          if(err == -EAGAIN) {
-            printf("Failed to find address in ARP cache, trying again..\n");
-            sleep(1);
-            err = ip_output(dest_addr, sub);
-          } else if(err < 0){
-              printf("Error: ip_output failed: err: %d\n", err);
+
+            try_again(5, 1,err == -EAGAIN, {
+                    printf("Failed to find address in ARP cache, trying again..(%d/5)\n",i);
+                    err = ip_output(dest_addr, sub);
+                }
+            );
+
+            if(err < 0){
+              printf("ip_output returned error: %d", err);
               return -1;
-          }
+            }
         } else if(err < 0){
-          printf("ip_output returns error: %d\n", err);
-          return err;
+            printf("ip_output returns error: %d\n", err);
+            return err;
+        } else {
+            printf("Written %d bytes to tap device\n", err);
         }
+
         sock_entry->tcp_state.state = SYN_SENT;
         printf("SYN sent\n");
 
@@ -146,8 +155,10 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
         printf("mutex\n");
         while(!sock_entry->tcp_state.condition) {
           // wait on SYN-ACK, see ip_rx.c for receiving end.
+          printf("mutex1\n");
             pthread_cond_wait(&sock_entry->tcp_state.sig_cond,
                             &sock_entry->tcp_state.sig_mut);
+            printf("mutex2\n");
         }
         pthread_mutex_unlock(&sock_entry->tcp_state.sig_mut);
         printf("done waiting, received it\n");
