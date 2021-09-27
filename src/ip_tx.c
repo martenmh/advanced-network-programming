@@ -69,6 +69,7 @@ int ip_output(uint32_t dst_ip_addr, struct subuff *sub)
     sub->rt = rt;
 
     sub_push(sub, IP_HDR_LEN);
+    printf("\nHEREE: length of sub is:%d\n\n", sub->len);
 
     ihdr->version = IPP_NUM_IP_in_IP;
     ihdr->ihl = 0x05;

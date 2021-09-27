@@ -85,11 +85,14 @@ int netdev_transmit(struct subuff *sub, uint8_t *dst_hw, uint16_t ethertype)
 {
     struct anp_netdev *dev = sub->dev;
     sub_push(sub, ETH_HDR_LEN);
+    printf("\nHEREE: length of sub is:%d :: %d\n\n", sub->len, dev->addr_len);
     struct eth_hdr *hdr = (struct eth_hdr *)sub->data;
     int ret = 0;
     memcpy(hdr->dmac, dst_hw, dev->addr_len);
     memcpy(hdr->smac, dev->hwaddr, dev->addr_len);
     hdr->ethertype = htons(ethertype);
+    eth_debug("out", hdr);
+    printf("\nHEREE: length of sub is:%d\n\n", sub->len);
     ret = tdev_write((char *)sub->data, sub->len);
     return ret;
 }

@@ -89,11 +89,11 @@ bool is_anp_sock(int sockfd){
 
 int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
     if (addr->sa_family != AF_INET) {
-      printf("Unsupported sa_family");
-      goto drop_connection;
+        printf("Unsupported sa_family");
+        goto drop_connection;
     }
     bool is_anp_sockfd = is_anp_sock(sockfd);
-
+    printf("size of tcp header: %lu, ip: %lu, eth: %lu", TCP_HDR_LEN, IP_HDR_LEN, ETH_HDR_LEN);
     if(is_anp_sockfd){
         struct anp_socket_entry* sock_entry = get_sock(sockfd);
         if(sock_entry->tcp_state.state != CLOSED){
@@ -101,51 +101,50 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
             return -1;
         }
         struct subuff *sub = alloc_tcp_sub();
+
         if (!sub) {
-          printf("Error: allocation of the TCP sub failed \n");
-          return -1;
+            printf("Error: allocation of the TCP sub failed \n");
+            return -1;
         }
 
-        sub_push(sub, TCP_HDR_LEN);
-        struct tcphdr *hdr = (struct tcphdr *)sub->data;
+        struct tcphdr *hdr = (struct tcphdr*) sub_push(sub, 30);
 
         hdr->syn = 0x1;
-        hdr->dst_port = (((struct sockaddr_in *)addr)->sin_port);
+        hdr->urg = 0x1;
+        hdr->dst_port = ((struct sockaddr_in *)addr)->sin_port;
         // random port between 1024 and 65536
-        hdr->src_port = rand()%(65536-1024 + 1) + 1024;
-        hdr->seq_num = TCP_SEQ_START;
+        hdr->src_port = 0;//htons(rand()%(65536-1024 + 1) + 1024);
+        hdr->seq_num = htons(TCP_SEQ_START);
         hdr->ack_num = 0;
-        hdr->data_offset = TCP_HDR_LEN - 12;
+        hdr->data_offset = htons(TCP_HDR_LEN - 12);
         hdr->checksum = 0;
-        hdr->window = 1024;
+        hdr->window = htons(1024);
         uint32_t dest_addr = (((struct sockaddr_in *)addr)->sin_addr).s_addr;
         uint32_t src_addr = ip_str_to_n32(ANP_IP_CLIENT_EXT);
-        hdr->checksum = do_tcp_csum((uint8_t *)&hdr, TCP_HDR_LEN, IPP_TCP, src_addr, dest_addr);
+        hdr->checksum = do_tcp_csum((uint8_t *)&hdr, TCP_HDR_LEN, IPP_TCP,htonl(src_addr), htonl(dest_addr));
 
         debug_tcp_hdr("out", hdr);
         printf("Sending out SYN\n");
         sock_entry->tcp_state.prev_hdr = *hdr;
-
         sub->protocol = IPP_TCP;
+
         int err = ip_output(dest_addr, sub); // sending SYN
 
         if(err == -EAGAIN){
-
             try_again(5, 1,err == -EAGAIN, {
-                    printf("Failed to find address in ARP cache, trying again..(%d/5)\n",i);
+                    printf("Failed to find address in ARP cache, trying again..(%d/5)\n", i);
                     err = ip_output(dest_addr, sub);
-                }
-            );
+            });
 
             if(err < 0){
-              printf("ip_output returned error: %d", err);
+              printf("ip_output returned error: %d\n", err);
               return -1;
             }
         } else if(err < 0){
             printf("ip_output returns error: %d\n", err);
             return err;
         } else {
-            printf("Written %d bytes to tap device\n", err);
+            printf("Written %d bytes to TAP device\n", err);
         }
 
         sock_entry->tcp_state.state = SYN_SENT;

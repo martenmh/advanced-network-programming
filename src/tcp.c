@@ -45,8 +45,8 @@ int tcp_rx(struct subuff *sub){
 }
 
 struct subuff* alloc_tcp_sub(){
-    struct subuff *sub = alloc_sub(ETH_HDR_LEN + IP_HDR_LEN + TCP_HDR_LEN);
-    sub_reserve(sub, ETH_HDR_LEN + IP_HDR_LEN + TCP_HDR_LEN);
+    struct subuff *sub = alloc_sub(76);
+    sub_reserve(sub, 76);
     sub->protocol = IPP_TCP;
     return sub;
 }

@@ -113,6 +113,7 @@ bool tcp_headers_related(struct tcphdr* tx_hdr, struct tcphdr* rx_hdr);
 #define TCP_PAYLOAD_LEN(_tcp) assert(false)
 #define TCP_HDR_FROM_SUB(_sub) (struct tcphdr *)(_sub->head + IP_HDR_LEN + ETH_HDR_LEN);
 
+#define MIN_ALLOCATED_TCP_SUB 64
 #define TCP_CONNECT_TIMEOUT 10000 // 10 sec
 #define TCP_SEQ_START 1024  // really trivial but useful for debugging
 #endif // ANPNETSTACK_TCP_H
