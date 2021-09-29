@@ -25,15 +25,17 @@
 
 #define MIN_SOCKFD 1000000
 
-static LIST_HEAD(sockets);
-static uint32_t sockets_size = 0;
-
 
 struct anp_socket_entry {
   struct list_head list;
   struct tcp_sock_state tcp_state;
   int sockfd;
 };
+
+// shared between thread, defined in .c
+// TODO: add a mutex & encapsulate in a struct
+extern struct list_head sockets;
+extern uint32_t sockets_size;
 
 void _function_override_init();
 

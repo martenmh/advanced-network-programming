@@ -112,11 +112,17 @@ struct tcp_sock_state {
   // state information
   enum TCP_STATE state; // current state in TCP state machine
   //struct tcphdr prev_hdr;
-  struct subuff* sub;
+  struct subuff* tx_sub;
+  struct subuff* rx_sub;
 };
 
 int tcp_rx(struct subuff *sub);
 bool tcp_headers_related(struct tcphdr* tx_hdr, struct tcphdr* rx_hdr);
+struct tcphdr* create_syn(struct tcphdr* hdr, const struct sockaddr* addr);
+int tcp_output(uint32_t dst_addr, struct subuff* sub);
+int validate_tcphdr(struct tcphdr* hdr, uint32_t src_addr, uint32_t dst_addr);
+uint8_t *sub_pop(struct subuff *sub, unsigned int len);
+void tcp_csum(struct tcphdr* out_hdr, const struct sockaddr* addr);
 
 #define TCP_HDR_LEN sizeof(struct tcphdr)
 // TODO: Implement
