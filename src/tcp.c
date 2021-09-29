@@ -45,8 +45,8 @@ int tcp_rx(struct subuff *sub){
 }
 
 struct subuff* alloc_tcp_sub(){
-    struct subuff *sub = alloc_sub(66);
-    sub_reserve(sub, 66);
+    struct subuff *sub = alloc_sub(MIN_ALLOCATED_TCP_SUB);
+    sub_reserve(sub, MIN_ALLOCATED_TCP_SUB);
     sub->protocol = IPP_TCP;
     return sub;
 }

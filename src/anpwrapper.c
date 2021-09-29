@@ -70,7 +70,7 @@ int socket(int domain, int type, int protocol) {
     return _socket(domain, type, protocol);
 }
 
-struct anp_socket_entry* get_sock(int sockfd){
+struct anp_socket_entry* get_socket(int sockfd){
   struct list_head *item;
   struct anp_socket_entry *entry;
   list_for_each(item, &sockets) {
@@ -82,8 +82,8 @@ struct anp_socket_entry* get_sock(int sockfd){
   return NULL;
 }
 
-bool is_anp_sock(int sockfd){
-  return get_sock(sockfd) != NULL;
+bool is_anp_socket(int sockfd){
+  return get_socket(sockfd) != NULL;
 }
 
 uint8_t *sub_pop(struct subuff *sub, unsigned int len)
@@ -99,11 +99,11 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
       goto drop_connection;
   }
 
-  bool is_anp_sockfd = is_anp_sock(sockfd);
+  bool is_anp_sockfd = is_anp_socket(sockfd);
   printf("Length of TCP header is %lu\n", TCP_HDR_LEN + IP_HDR_LEN + ETH_HDR_LEN);
 
   if(is_anp_sockfd){
-      struct anp_socket_entry* sock_entry = get_sock(sockfd);
+      struct anp_socket_entry* sock_entry = get_socket(sockfd);
       if(sock_entry->tcp_state.state != CLOSED){
           printf("Socket is not closed; Expected CLOSED socket for connect");
           return -1;
@@ -114,30 +114,32 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
           printf("Error: allocation of the TCP sub failed \n");
           return -1;
       }
-      // 32
-      sub_push(sub, 66 - ( IP_HDR_LEN + ETH_HDR_LEN));
 
-      struct iphdr *ip_hdr = IP_HDR_FROM_SUB(sub);
-      struct tcphdr* hdr = (struct tcphdr *)ip_hdr->data;
-      hdr->checksum = 0;
-      hdr->data_offset = 0;
-      hdr->seq_num = htonl(3478468765);
+      struct tcphdr* hdr = (struct tcphdr *)sub_push(sub, MIN_ALLOCATED_TCP_SUB - ( IP_HDR_LEN + ETH_HDR_LEN));
+
+      //struct iphdr *ip_hdr = IP_HDR_FROM_SUB(sub);
+      //struct tcphdr* hdr = (struct tcphdr *)ip_hdr->data;
+
+      hdr->seq_num = htonl(69280981);
       hdr->ack_num = 0;
 
       hdr->syn = 0x1;
-      hdr->window = htons(65495);
-      hdr->dst_port = ((struct sockaddr_in *)addr)->sin_port;
-      hdr->data_offset = 0x8;
+      hdr->window = htons(TCP_MAX_WINDOW);  // we can receive the max amount
+
+      hdr->data_offset = 0x8; // header contains 5 x 32 bits
       hdr->reserved = 0b0000;
       // random port between 1024 and 65536
       hdr->src_port = htons(rand()%(65536-1024 + 1) + 1024);
-      hdr->checksum = 0;
+      hdr->dst_port = ((struct sockaddr_in *)addr)->sin_port;
+      hdr->checksum = 0;  // zero checksum before calculating
       sub->protocol = IPP_TCP;
 
-      uint32_t dest_addr = (((struct sockaddr_in *)addr)->sin_addr).s_addr;
+      uint32_t dest_addr = htonl((((struct sockaddr_in *)addr)->sin_addr).s_addr);
       uint32_t src_addr = ip_str_to_n32(ANP_IP_CLIENT_EXT);
-      hdr->checksum = do_tcp_csum((uint8_t *)&hdr, 66 - ( IP_HDR_LEN + ETH_HDR_LEN), IPP_TCP,htonl(src_addr), htonl(dest_addr));
 
+      hdr->checksum = do_tcp_csum((uint8_t *)hdr, MIN_ALLOCATED_TCP_SUB - ( IP_HDR_LEN + ETH_HDR_LEN),
+                                  htons(IPP_TCP), htonl(src_addr), htonl(dest_addr));
+      //hdr->checksum = htons(0x594e);
       // store allocated subuff for deallocation and comparison
       sock_entry->tcp_state.sub = sub;
       debug_tcp_hdr("out", hdr);
@@ -150,8 +152,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
           // the sub continually gets pushed to without being popped
           sub_pop(sub, IP_HDR_LEN);
           struct iphdr* ip = IP_HDR_FROM_SUB(sub);
-          printf("Failed to find address in ARP cache, trying again..(%d/5)\n",
-                 i);
+          printf("Failed to find address in ARP cache, trying again..(%d/5)\n",i);
           err = ip_output(dest_addr, sub);
         });
       }
@@ -163,12 +164,13 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
         printf("Written %d bytes to TAP device.\n", err);
       }
 
+      sock_entry->tcp_state.state = SYN_SENT;
       printf("SYN sent\n");
       printf("Waiting on SYN-ACK..\n");
 
       // wait on SYN-ACK
       pthread_mutex_lock(&sock_entry->tcp_state.sig_mut);
-      printf("mutex\n");
+
       while(!sock_entry->tcp_state.condition) {
         // wait on SYN-ACK, see ip_rx.c for receiving end.
         printf("mutex1\n");
@@ -177,12 +179,14 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
           printf("mutex2\n");
       }
       pthread_mutex_unlock(&sock_entry->tcp_state.sig_mut);
-      printf("done waiting, received it\n");
+      printf("Received SYN-ACK");
 
       if(!sock_entry->tcp_state.condition){
           return -1;
       }
-      sock_entry->tcp_state.state = SYN_SENT;
+      sock_entry->tcp_state.state = ESTABLISHED;
+      printf("Sending ACK..\n");
+
       return 0;
   }
   drop_connection:
@@ -193,9 +197,10 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 // TODO: ANP milestone 5 -- implement the send, recv, and close calls
 ssize_t send(int sockfd, const void *buf, size_t len, int flags)
 {
-    bool is_anp_sockfd = is_anp_sock(sockfd);
+    bool is_anp_sockfd = is_anp_socket(sockfd);
     if(is_anp_sockfd) {
-        //TODO: implement your logic here
+
+        printf("Not yet implemented");
         return -ENOSYS;
     }
     // the default path
