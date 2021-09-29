@@ -17,6 +17,7 @@
 #include "ip.h"
 #include "subuff.h"
 
+#include <endian.h>
 
 #ifndef ANPNETSTACK_TCP_H
 #define ANPNETSTACK_TCP_H
@@ -56,23 +57,31 @@ struct tcphdr {
   uint16_t dst_port;
   uint32_t seq_num;
   uint32_t ack_num;
-  uint8_t data_offset : 4;
-  uint8_t reserved : 6;
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+  uint8_t reserved : 4;
+  uint8_t data_offset : 4;  // header length
+#elif __BYTE_ORDER == __BIG_ENDIAN
+  uint8_t data_offset : 4;  // header length
+  uint8_t reserved : 4;
+#endif
+
   // "Inspired" by linux's tcphdr
-#if defined(LITTLE_ENDIAN)
-    uint8_t fin : 1,
-            syn : 1,
-            rst : 1,
-            psh : 1,
-            ack : 1,
-            urg : 1;
-#elif defined(BIG_ENDIAN)
-    uint8_t urg : 1,
-            ack : 1,
-            psh : 1,
-            rst : 1,
-            syn : 1,
-            fin : 1;
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+  uint8_t fin : 1,
+      syn : 1,
+      rst : 1,
+      psh : 1,
+      ack : 1,
+      urg : 1,
+      ece : 1,
+      cwr : 1;
+#elif __BYTE_ORDER == __BIG_ENDIAN
+  uint8_t fin : 1,
+      syn : 1,
+      rst : 1,
+      psh : 1,
+      ack : 1,
+      urg : 1;
 #endif
   uint16_t window;
   uint16_t checksum;
@@ -102,7 +111,8 @@ struct tcp_sock_state {
   bool condition;
   // state information
   enum TCP_STATE state; // current state in TCP state machine
-  struct tcphdr prev_hdr;
+  //struct tcphdr prev_hdr;
+  struct subuff* sub;
 };
 
 int tcp_rx(struct subuff *sub);
@@ -111,7 +121,7 @@ bool tcp_headers_related(struct tcphdr* tx_hdr, struct tcphdr* rx_hdr);
 #define TCP_HDR_LEN sizeof(struct tcphdr)
 // TODO: Implement
 #define TCP_PAYLOAD_LEN(_tcp) assert(false)
-#define TCP_HDR_FROM_SUB(_sub) (struct tcphdr *)(_sub->head + IP_HDR_LEN + ETH_HDR_LEN);
+#define TCP_HDR_FROM_SUB(_sub) (struct tcphdr *)(_sub->head + IP_HDR_LEN + ETH_HDR_LEN)
 
 #define MIN_ALLOCATED_TCP_SUB 64
 #define TCP_CONNECT_TIMEOUT 10000 // 10 sec

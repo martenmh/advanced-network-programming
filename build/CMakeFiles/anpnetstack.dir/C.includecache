@@ -291,6 +291,8 @@ ip.h
 /home/marten/Documents/anp/src/ip.h
 subuff.h
 /home/marten/Documents/anp/src/subuff.h
+endian.h
+-
 
 /home/marten/Documents/anp/src/timer.c
 timer.h

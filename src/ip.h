@@ -71,7 +71,7 @@ struct iphdr {
 
 #define IP_HDR_LEN sizeof(struct iphdr)
 #define IP_PAYLOAD_LEN(_ip) (_ip->len - (_ip->ihl * 4))
-#define IP_HDR_FROM_SUB(_sub) (struct iphdr *)(_sub->head + ETH_HDR_LEN);
+#define IP_HDR_FROM_SUB(_sub) (struct iphdr *)(_sub->head + ETH_HDR_LEN)
 
 int ip_rx(struct subuff *);
 int ip_output(uint32_t dst_ip_addr, struct subuff *);

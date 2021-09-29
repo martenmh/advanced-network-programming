@@ -29,7 +29,7 @@ int tcp_rx(struct subuff *sub){
   list_for_each(item, &sockets) {
     entry = list_entry(item, struct anp_socket_entry, list);
     struct tcphdr* hdr = TCP_HDR_FROM_SUB(sub);
-    if(!tcp_headers_related(&entry->tcp_state.prev_hdr, hdr)){
+    if(!tcp_headers_related(TCP_HDR_FROM_SUB(entry->tcp_state.sub), hdr)){
       continue;
     }
     if(entry->tcp_state.state == SYN_SENT) {
@@ -45,8 +45,8 @@ int tcp_rx(struct subuff *sub){
 }
 
 struct subuff* alloc_tcp_sub(){
-    struct subuff *sub = alloc_sub(76);
-    sub_reserve(sub, 76);
+    struct subuff *sub = alloc_sub(66);
+    sub_reserve(sub, 66);
     sub->protocol = IPP_TCP;
     return sub;
 }

@@ -113,6 +113,5 @@ int tdev_read(char *buf, int len)
 
 int tdev_write(char *buf, int len)
 {
-    printf("writing..: %d of size %d", _tdev->tun_fd, len);
     return write(_tdev->tun_fd, buf, len);
 }
