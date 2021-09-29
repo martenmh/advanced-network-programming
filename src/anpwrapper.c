@@ -143,19 +143,29 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 
       sock_entry->tcp_state.state = ESTABLISHED;
 
-      struct subuff* ack_sub = sock_entry->tcp_state.tx_sub;
-      sub_reserve(ack_sub, MIN_ALLOCATED_TCP_SUB);
+      struct subuff* ack_sub =alloc_tcp_sub();
+
       sub_push(ack_sub, MIN_ALLOCATED_TCP_SUB - ( IP_HDR_LEN + ETH_HDR_LEN));
 
       struct tcphdr* ack_hdr = TCP_HDR_FROM_SUB(ack_sub);
       struct tcphdr* rx_hdr = TCP_HDR_FROM_SUB(sock_entry->tcp_state.rx_sub);
-      ack_hdr->ack = 0x1;
-      ack_hdr->syn = 0x0;
-      ack_hdr->ack_num = ntohl(rx_hdr->ack_num) + 1;
+      ack_hdr->seq_num = htonl(69280981);
+      ack_hdr->seq_num = syn_hdr->seq_num;
 
-      ack_hdr->checksum = 0;
-      ack_hdr->checksum = do_tcp_csum((uint8_t *)syn_hdr, MIN_ALLOCATED_TCP_SUB - ( IP_HDR_LEN + ETH_HDR_LEN),
-                                      htons(IPP_TCP), htonl(src_addr), htonl(dest_addr));
+      ack_hdr->ack = 0x1;
+      ack_hdr->ack_num = ntohl(rx_hdr->ack_num) + 1;
+      ack_hdr->window = htons(TCP_MAX_WINDOW);  // we can receive the max amount
+
+      ack_hdr->data_offset = 0x8; // header contains 8 x 32 bits
+      // random port between 1024 and 65536
+      ack_hdr->src_port = syn_hdr->src_port;
+      ack_hdr->reserved = 0b0000;
+      ack_hdr->dst_port = ((struct sockaddr_in *)addr)->sin_port;
+      ack_hdr->checksum = 0;  // zero checksum before calculating
+
+      ack_hdr->checksum = do_tcp_csum((uint8_t *)ack_hdr, ack_hdr->data_offset * 4,
+                                  htons(IPP_TCP), htonl(src_addr), htonl(dest_addr));
+
 
       printf("Sending ACK..\n");
       debug_tcp_hdr("ACK out", ack_hdr);
