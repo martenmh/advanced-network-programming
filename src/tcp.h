@@ -39,7 +39,7 @@ enum state_flag {
 };
 
 enum TCP_STATE {
-  LISTEN,
+  LISTEN, // not implemented
   SYN_SENT,
   SYN_RECEIVED,
   ESTABLISHED,
@@ -119,6 +119,7 @@ struct tcp_sock_state {
 int tcp_rx(struct subuff *sub);
 bool tcp_headers_related(struct tcphdr* tx_hdr, struct tcphdr* rx_hdr);
 struct tcphdr* create_syn(struct tcphdr* hdr, const struct sockaddr* addr);
+
 int tcp_output(uint32_t dst_addr, struct subuff* sub);
 int validate_tcphdr(struct tcphdr* hdr, uint32_t src_addr, uint32_t dst_addr);
 uint8_t *sub_pop(struct subuff *sub, unsigned int len);
@@ -130,6 +131,9 @@ void tcp_csum(struct tcphdr* out_hdr, const struct sockaddr* addr);
 #define TCP_HDR_FROM_SUB(_sub) (struct tcphdr *)(_sub->head + IP_HDR_LEN + ETH_HDR_LEN)
 
 #define TCP_MAX_WINDOW 65495
+
+// Initial Sequence Number (ISN)
+#define SIMPLE_ISN  0xC0FFEE  //  unsafe but arbitrary in this case
 
 #define MIN_ALLOCATED_TCP_SUB 66
 #define TCP_CONNECT_TIMEOUT 10000 // 10 sec

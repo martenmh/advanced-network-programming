@@ -29,7 +29,6 @@ int tcp_rx(struct subuff *sub){
   struct iphdr* ip_hdr = IP_HDR_FROM_SUB(sub);
   struct tcphdr* hdr = TCP_HDR_FROM_SUB(sub);
 
-
   list_for_each(item, &sockets) {
     printf("item n\n");
     entry = list_entry(item, struct anp_socket_entry, list);
@@ -37,6 +36,39 @@ int tcp_rx(struct subuff *sub){
       continue;
     }
     printf("Incoming TCP response is related to an existing TCP connection.\n");
+
+    switch(entry->tcp_state.state){
+    case SYN_SENT:
+//      if(!hdr->syn){
+//        printf("Received Impossible state; Expected SYN or SYN-ACK.\n");
+//        goto drop_segment;
+//      }
+      if(hdr->ack){
+        //syn_ack();
+      } else {
+
+      }
+      break;
+    case ESTABLISHED:
+      break;
+    case SYN_RECEIVED:
+      break;
+    case FIN_WAIT_1:
+      break;
+    case FIN_WAIT_2:
+      break;
+    case CLOSE_WAIT:
+      break;
+    case CLOSING:
+      break;
+    case LAST_ACK:
+      break;
+    case TIME_WAIT:
+      break;
+    case CLOSED:
+      break;
+    }
+
     if(entry->tcp_state.state == SYN_SENT && hdr->ack && hdr->syn) {
       printf("Validating Checksum..\n");
       // TODO: correctly validate checksum\
@@ -55,11 +87,14 @@ int tcp_rx(struct subuff *sub){
       pthread_cond_signal(
           &entry->tcp_state.sig_cond); // signal connect() call
       pthread_mutex_unlock(&entry->tcp_state.sig_mut);
+    } else if(hdr->rst){
+
     }
 
     printf("Successfully received TCP response.\n");
     return 0;
   }
+drop_segment:
   printf("Failed to receive TCP segment.\n");
   return 0;
 }
@@ -90,7 +125,7 @@ void tcp_csum(struct tcphdr* out_hdr, const struct sockaddr* addr){
 }
 
 struct tcphdr* create_syn(struct tcphdr* hdr, const struct sockaddr* addr){
-  hdr->seq_num = htonl(69280981);
+  hdr->seq_num = htonl(SIMPLE_ISN);
   hdr->ack_num = 0;
 
   hdr->syn = 0x1;
@@ -98,6 +133,7 @@ struct tcphdr* create_syn(struct tcphdr* hdr, const struct sockaddr* addr){
 
   hdr->data_offset = 0x8; // header contains 8 x 32 bits
   // random port between 1024 and 65536
+  srand(time(NULL));
   hdr->src_port = htons(rand()%(65536-1024 + 1) + 1024);
   hdr->reserved = 0b0000;
   hdr->dst_port = ((struct sockaddr_in *)addr)->sin_port;
