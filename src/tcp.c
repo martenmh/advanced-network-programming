@@ -143,7 +143,7 @@ struct tcphdr* create_syn(struct tcphdr* hdr, const struct sockaddr* addr){
   uint32_t src_addr = ip_str_to_n32(ANP_IP_CLIENT_EXT);
 
   hdr->checksum = (do_tcp_csum((uint8_t *)hdr, hdr->data_offset * 4,
-                              htons(IPP_TCP), htonl(src_addr), htonl(dest_addr))) - htons(0x100);
+                              htons(IPP_TCP), htonl(src_addr), htonl(dest_addr)));
   return hdr;
 }
 

@@ -122,7 +122,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 
       debug_tcp_hdr("SYN out", syn_hdr);
       int err = tcp_output(dest_addr, sub);
-      if(err != 0)
+      if(err <= 0)
         return err;
       sock_entry->tcp_state.state = SYN_SENT;
       printf("SYN sent\n");
@@ -163,14 +163,16 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
       ack_hdr->checksum = 0;  // zero checksum before calculating
 
       ack_hdr->checksum = (do_tcp_csum((uint8_t *)ack_hdr, ack_hdr->data_offset * 4,
-                                  htons(IPP_TCP), htonl(src_addr), htonl(dest_addr))) - htons(0x100);
+                                  htons(IPP_TCP), htonl(src_addr), htonl(dest_addr)));
 
       printf("Sending ACK..\n");
       debug_tcp_hdr("ACK out", ack_hdr);
       err = ip_output(dest_addr, ack_sub);
-      err = ip_output(dest_addr, ack_sub);
-      if(err != 0)
+      if(err <= 0) {
+        printf("Getting err: %d, errno: %d", err, errno);
         return err;
+      }
+      
       u32_ip_to_str("TCP connection established to ", ntohl(dest_addr));
       return 0;
   }
@@ -186,6 +188,7 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
     if(is_anp_sockfd) {
         printf("SEND called \n");
         struct anp_socket_entry* sock_entry = get_socket(sockfd);
+        printf("boop %d", sock_entry->tcp_state.state);
         if(sock_entry->tcp_state.state != ESTABLISHED) {
             printf("Socket is not ESTABLISHED; Expected ESTABLISHED socket for sending");
             return -1;
