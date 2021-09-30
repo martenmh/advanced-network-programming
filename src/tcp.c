@@ -142,8 +142,8 @@ struct tcphdr* create_syn(struct tcphdr* hdr, const struct sockaddr* addr){
   uint32_t dest_addr = htonl((((struct sockaddr_in *)addr)->sin_addr).s_addr);
   uint32_t src_addr = ip_str_to_n32(ANP_IP_CLIENT_EXT);
 
-  hdr->checksum = do_tcp_csum((uint8_t *)hdr, hdr->data_offset * 4,
-                              htons(IPP_TCP), htonl(src_addr), htonl(dest_addr));
+  hdr->checksum = (do_tcp_csum((uint8_t *)hdr, hdr->data_offset * 4,
+                              htons(IPP_TCP), htonl(src_addr), htonl(dest_addr))) - htons(0x100);
   return hdr;
 }
 
@@ -173,6 +173,13 @@ int tcp_output(uint32_t dest_addr, struct subuff* sub){
 struct subuff* alloc_tcp_sub(){
     struct subuff *sub = alloc_sub(MIN_ALLOCATED_TCP_SUB);
     sub_reserve(sub, MIN_ALLOCATED_TCP_SUB);
+    sub->protocol = IPP_TCP;
+    return sub;
+}
+
+struct subuff* alloc_tcp_payload(size_t payload){
+    struct subuff *sub = alloc_sub(TCP_HDR_LEN + ETH_HDR_LEN + IP_HDR_LEN + payload);
+    sub_reserve(sub, TCP_HDR_LEN + ETH_HDR_LEN + IP_HDR_LEN);
     sub->protocol = IPP_TCP;
     return sub;
 }

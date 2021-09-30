@@ -103,6 +103,7 @@ union tcp_options{
 } __attribute__((packed));
 
 struct subuff* alloc_tcp_sub();
+struct subuff* alloc_tcp_payload(size_t payload);
 
 struct tcp_sock_state {
   // signalling

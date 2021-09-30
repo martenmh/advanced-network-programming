@@ -30,6 +30,11 @@ struct anp_socket_entry {
   struct list_head list;
   struct tcp_sock_state tcp_state;
   int sockfd;
+
+  uint32_t dest_addr;
+  uint16_t dest_port;
+  uint32_t src_addr;
+  uint16_t src_port;
 };
 
 // shared between thread, defined in .c

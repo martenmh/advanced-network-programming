@@ -162,8 +162,8 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
       ack_hdr->dst_port = ((struct sockaddr_in *)addr)->sin_port;
       ack_hdr->checksum = 0;  // zero checksum before calculating
 
-      ack_hdr->checksum = do_tcp_csum((uint8_t *)ack_hdr, ack_hdr->data_offset * 4,
-                                  htons(IPP_TCP), htonl(src_addr), htonl(dest_addr));
+      ack_hdr->checksum = (do_tcp_csum((uint8_t *)ack_hdr, ack_hdr->data_offset * 4,
+                                  htons(IPP_TCP), htonl(src_addr), htonl(dest_addr))) - htons(0x100);
 
       printf("Sending ACK..\n");
       debug_tcp_hdr("ACK out", ack_hdr);
@@ -184,9 +184,42 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
 {
     bool is_anp_sockfd = is_anp_socket(sockfd);
     if(is_anp_sockfd) {
+        printf("SEND called \n");
+        struct anp_socket_entry* sock_entry = get_socket(sockfd);
+        if(sock_entry->tcp_state.state != ESTABLISHED) {
+            printf("Socket is not ESTABLISHED; Expected ESTABLISHED socket for sending");
+            return -1;
+        }
+        uint32_t payload = len;
+        struct subuff* sub = alloc_tcp_payload(payload);
+        if (!sub) {
+            printf("Error: allocation of the TCP tx_sub failed \n");
+            return -1;
+        }
 
-        printf("Not yet implemented");
-        return -ENOSYS;
+        // push header
+        struct tcphdr *send_hdr = (struct tcphdr *)sub_push(sub, TCP_HDR_LEN);
+        struct tcphdr *rx_hdr = TCP_HDR_FROM_SUB(sock_entry->tcp_state.rx_sub);
+
+        send_hdr->src_port = ntohs(sock_entry->src_port);
+        send_hdr->dst_port = ntohs(sock_entry->dest_port);
+
+        send_hdr->seq_num = htonl(SIMPLE_ISN + payload);
+        send_hdr->ack_num = htonl(ntohl(rx_hdr->seq_num) + 1);
+
+        send_hdr->ack = 0x1;
+        send_hdr->psh = 0x1;
+
+        send_hdr->window = htons(TCP_MAX_WINDOW);  // we can receive the max amount
+        sub->protocol = IPP_TCP;
+        send_hdr->data_offset = 0x8; // header contains 8 x 32 bits
+
+        send_hdr->checksum = 0;
+        send_hdr->checksum = do_tcp_csum((void *)send_hdr, TCP_HDR_LEN + payload, IPP_TCP, sock_entry->src_addr, sock_entry->dest_addr);
+
+        printf("Sending packet \n");
+        ip_output(sock_entry->dest_addr, sub);
+
     }
     // the default path
     return _send(sockfd, buf, len, flags);
