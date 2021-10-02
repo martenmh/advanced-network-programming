@@ -122,7 +122,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 
       debug_tcp_hdr("SYN out", syn_hdr);
       int err = tcp_output(dest_addr, sub);
-      if(err <= 0)
+      if(err < 0)
         return err;
       sock_entry->tcp_state.state = SYN_SENT;
       printf("SYN sent\n");
@@ -168,7 +168,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
       printf("Sending ACK..\n");
       debug_tcp_hdr("ACK out", ack_hdr);
       err = ip_output(dest_addr, ack_sub);
-      if(err <= 0) {
+      if(err < 0) {
         printf("Getting err: %d, errno: %d", err, errno);
         return err;
       }
