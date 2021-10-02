@@ -111,7 +111,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
           return -1;
       }
 
-      struct tcphdr*syn_hdr = (struct tcphdr *)sub_push(sub, MIN_ALLOCATED_TCP_SUB - ( IP_HDR_LEN + ETH_HDR_LEN));
+      struct tcphdr*syn_hdr = (struct tcphdr *)sub_push(sub, MIN_PADDED_TCP_LEN);
       syn_hdr = create_syn(syn_hdr, addr);
 
       uint32_t src_addr = ip_str_to_n32(ANP_IP_CLIENT_EXT);
@@ -144,7 +144,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
       sock_entry->tcp_state.state = ESTABLISHED;
 
       struct subuff* ack_sub = alloc_tcp_sub();
-      sub_push(ack_sub, MIN_ALLOCATED_TCP_SUB - ( IP_HDR_LEN + ETH_HDR_LEN));
+      sub_push(ack_sub, MIN_PADDED_TCP_LEN);
 
       struct tcphdr* ack_hdr = TCP_HDR_FROM_SUB(ack_sub);
 
@@ -172,8 +172,14 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
         printf("Getting err: %d, errno: %d", err, errno);
         return err;
       }
-      
+      sock_entry->src_port = ack_hdr->src_port;
+      sock_entry->dest_port = ack_hdr->dst_port;
+
+      sock_entry->src_addr = src_addr;
+      sock_entry->dest_addr = dest_addr;
+      sock_entry->tcp_state.state = ESTABLISHED;
       u32_ip_to_str("TCP connection established to ", ntohl(dest_addr));
+
       return 0;
   }
   drop_connection:
@@ -199,7 +205,11 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
             printf("Error: allocation of the TCP tx_sub failed \n");
             return -1;
         }
+        printf("Copying buffer of len: %zu into payload\n", len);
+        uint8_t *payload_buf = sub_push(sub, payload);
+        memcpy(payload_buf, buf, len);
 
+        printf("Creating header\n");
         // push header
         struct tcphdr *send_hdr = (struct tcphdr *)sub_push(sub, TCP_HDR_LEN);
         struct tcphdr *rx_hdr = TCP_HDR_FROM_SUB(sock_entry->tcp_state.rx_sub);
@@ -221,8 +231,12 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
         send_hdr->checksum = do_tcp_csum((void *)send_hdr, TCP_HDR_LEN + payload, IPP_TCP, sock_entry->src_addr, sock_entry->dest_addr);
 
         printf("Sending packet \n");
-        ip_output(sock_entry->dest_addr, sub);
-
+        u32_ip_to_str("Sending payload to: ", sock_entry->dest_addr);
+        int err = tcp_output(sock_entry->dest_addr, sub);
+        if(err < 0){
+          return err;
+        }
+        //ip_output(sock_entry->dest_addr, sub);
     }
     // the default path
     return _send(sockfd, buf, len, flags);

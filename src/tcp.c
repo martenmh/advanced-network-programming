@@ -178,8 +178,8 @@ struct subuff* alloc_tcp_sub(){
 }
 
 struct subuff* alloc_tcp_payload(size_t payload){
-    struct subuff *sub = alloc_sub(TCP_HDR_LEN + ETH_HDR_LEN + IP_HDR_LEN + payload);
-    sub_reserve(sub, TCP_HDR_LEN + ETH_HDR_LEN + IP_HDR_LEN);
+    struct subuff *sub = alloc_sub(MIN_ALLOCATED_TCP_SUB + payload);
+    sub_reserve(sub, MIN_ALLOCATED_TCP_SUB + payload);
     sub->protocol = IPP_TCP;
     return sub;
 }

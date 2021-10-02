@@ -135,7 +135,7 @@ void tcp_csum(struct tcphdr* out_hdr, const struct sockaddr* addr);
 
 // Initial Sequence Number (ISN)
 #define SIMPLE_ISN  0xC0FFEE  //  unsafe but arbitrary in this case
-
+#define MIN_PADDED_TCP_LEN (MIN_ALLOCATED_TCP_SUB - ( IP_HDR_LEN + ETH_HDR_LEN))
 #define MIN_ALLOCATED_TCP_SUB 66
 #define TCP_CONNECT_TIMEOUT 10000 // 10 sec
 #define TCP_SEQ_START 1024  // really trivial but useful for debugging
