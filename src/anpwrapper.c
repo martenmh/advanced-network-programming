@@ -175,7 +175,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
       ack_hdr->checksum = 0;  // zero checksum before calculating
 
       ack_hdr->checksum = (do_tcp_csum((uint8_t *)ack_hdr, ack_hdr->data_offset * 4,
-                                  htons(IPP_TCP), htonl(src_addr), htonl(dest_addr))) - htons(256);
+                                  htons(IPP_TCP), htonl(src_addr), htonl(dest_addr)));
 
       printf("Sending ACK..\n");
       debug_tcp_hdr("ACK out", ack_hdr);
@@ -272,148 +272,161 @@ struct tcphdr* wait_on_tcp_response(struct anp_socket_entry* sock_entry){
   return TCP_HDR_FROM_SUB(sock_entry->tcp_state.rx_sub);
 }
 
-//ssize_t recv (int sockfd, void *buf, size_t len, int flags){
-//  bool is_anp_sockfd = is_anp_socket(sockfd);
-//  if(is_anp_sockfd) {
-//    size_t read_len = 0;
-//    struct anp_socket_entry *socket_entry = get_socket(sockfd);
-//
-//    async_printf("Waiting on TCP response..\n");
-//
-//    pthread_mutex_lock(&socket_entry->tcp_state.sig_mut);
-//    while (!socket_entry->tcp_state.condition) {
-//      // Wait to be signalled by an incoming TCP response from ip_rx
-//      pthread_cond_wait(&socket_entry->tcp_state.sig_cond,
-//                        &socket_entry->tcp_state.sig_mut);
-//    }
-//    pthread_mutex_unlock(&socket_entry->tcp_state.sig_mut);
-//
-//    pthread_mutex_lock(&socket_entry->tcp_state_mut);
-//    async_printf("Received TCP response with payload length of: %d\n");
-//    volatile struct tcphdr *tcp_hdr =
-//        TCP_HDR_FROM_SUB(socket_entry->tcp_state.rx_sub);
-//
-//    struct tcphdr *ack_hdr;
-//    ssize_t payload_len;
-//    void *payload;
-//    volatile struct subuff *sub = socket_entry->tcp_state.rx_sub;
-//    async_printf("Read sent TCP packet\n");
-//    debug_ip_hdr("in", (IP_HDR_FROM_SUB(sub)));
-//
-//    debug_tcp_hdr("in", tcp_hdr);
-//
-//    payload_len = TCP_PAYLOAD_LEN(sub);
-//    async_printf("incoming payload has length: %zd\n", payload_len);
-//    payload = TCP_PAYLOAD_FROM_SUB(sub);
-//
-//    pthread_mutex_unlock(&socket_entry->tcp_state_mut);
-//  }
-//}
-
 ssize_t recv (int sockfd, void *buf, size_t len, int flags){
-    if(len == 0){
-      async_printf("Invalid argument length of 0.\n");
-      return 0;
+  bool is_anp_sockfd = is_anp_socket(sockfd);
+  if(is_anp_sockfd) {
+    size_t read_len = 0;
+    struct anp_socket_entry *socket_entry = get_socket(sockfd);
+
+    async_printf("Waiting on TCP response..\n");
+
+    pthread_mutex_lock(&socket_entry->tcp_state.sig_mut);
+    while (!socket_entry->tcp_state.condition) {
+      // Wait to be signalled by an incoming TCP response from ip_rx
+      pthread_cond_wait(&socket_entry->tcp_state.sig_cond,
+                        &socket_entry->tcp_state.sig_mut);
     }
-    if(buf == NULL){
-      async_printf("Invalid argument, buffer is NULL pointer.\n");
-      return 0;
-    }
+    pthread_mutex_unlock(&socket_entry->tcp_state.sig_mut);
 
-    // TODO: I have no idea what is wrong, but it looks like the program receives the same subuff multiple times..?
-    // TODO: Maybe look into how to get the incoming packet in a single packet
-    bool is_anp_sockfd = is_anp_socket(sockfd);
-    if(is_anp_sockfd) {
-      size_t read_len = 0;
-      struct anp_socket_entry *socket_entry = get_socket(sockfd);
+    pthread_mutex_lock(&socket_entry->tcp_state_mut);
+    async_printf("Read TCP packet.\n");
+    struct list_head *item;
+    struct recv_packet_entry *entry;
+    async_printf("reading received packets\n");
+    int i = 0;
+    list_for_each(item, &recv_packets) {
+      entry = list_entry(item, struct recv_packet_entry, list);
+      if (entry->sockfd != sockfd)
+        continue;
 
-      async_printf("Waiting on TCP response..\n");
 
-      pthread_mutex_lock(&socket_entry->tcp_state.sig_mut);
-      while(!socket_entry->tcp_state.condition) {
-        // Wait to be signalled by an incoming TCP response from ip_rx
-        pthread_cond_wait(&socket_entry->tcp_state.sig_cond,
-                          &socket_entry->tcp_state.sig_mut);
+      if (len < entry->length) {
+        read_len = len;
+      } else {
+        read_len = entry->length;
       }
-      pthread_mutex_unlock(&socket_entry->tcp_state.sig_mut);
 
-      async_printf("Reading this..\n");
-      volatile struct tcphdr *tcp_hdr = TCP_HDR_FROM_SUB(socket_entry->tcp_state.rx_sub);
-      struct tcphdr* ack_hdr;
-      ssize_t payload_len;
-      void *payload;
-
-      { // lock
-
-        pthread_mutex_lock(&socket_entry->tcp_state_mut);
-
-        volatile struct subuff *sub = socket_entry->tcp_state.rx_sub;
-        async_printf("Read sent TCP packet\n");
-        debug_ip_hdr("in", (IP_HDR_FROM_SUB(sub)));
-
-        debug_tcp_hdr("in", tcp_hdr);
-
-        payload_len = TCP_PAYLOAD_LEN(sub);
-        async_printf("incoming payload has length: %zd\n", payload_len);
-        payload = TCP_PAYLOAD_FROM_SUB(sub);
-
-        async_printf("\n\n");
-        wireshark_print(payload, payload_len);
-        async_printf("\n\n");
-
-        // sending acknowledgement
-        struct subuff *ack_sub = alloc_tcp_sub();
-        sub_push(ack_sub, MIN_PADDED_TCP_LEN);
-
-        struct tcphdr *ack_hdr = TCP_HDR_FROM_SUB(ack_sub);
-        struct tcphdr *rx_hdr = tcp_hdr;
-        ack_hdr->seq_num = socket_entry->tcp_state.sequence_num;
-        // ack_hdr->seq_num = htonl(ntohl(socket_entry->tcp_state.sequence_num) + 1);
-        ack_hdr->ack_num = htonl(ntohl(rx_hdr->seq_num) + 1);
-
-        ack_hdr->ack = 0x1;
-        ack_hdr->window =
-            htons(TCP_MAX_WINDOW); // we can receive the max amount
-        sub->protocol = IPP_TCP;
-
-        ack_hdr->src_port = socket_entry->src_port;
-        ack_hdr->dst_port = socket_entry->dest_port;
-
-        ack_hdr->data_offset = 0x8; // header contains 8 x 32 bits
-        ack_hdr->reserved = 0b0000;
-
-        ack_hdr->checksum = 0; // zero checksum before calculating
-
-        ack_hdr->checksum = do_tcp_csum(
-            (uint8_t *)ack_hdr, ack_hdr->data_offset * 4 + payload_len,
-            htons(IPP_TCP), htonl(socket_entry->src_addr),
-            htonl(socket_entry->dest_addr));
-
-        async_printf("Sending ACK..\n");
-        debug_tcp_hdr("ACK out", ack_hdr);
-        //int err = 0;
-        int err = tcp_output(socket_entry->dest_addr, ack_sub);
-        if (err < 0) {
-          async_printf("Getting err: %d, errno: %d", err, errno);
-          return err;
-        }
-
-        pthread_mutex_unlock(&socket_entry->tcp_state_mut);
-      } // unlock
-
-      // write incoming tcp_hdr to buffer
-      if (payload_len > len) {
-        async_printf("Buffer length was not sufficient for incoming payload of length: %zd\n",
-               payload_len);
-        payload_len = len;
-      }
-      read_len += payload_len;
-      memcpy(buf, payload, payload_len);
-      return read_len;
+      memcpy(buf, entry->buffer, read_len);
+      list_del(item);
+      goto ret;
     }
-    // the default path
-    return _recv(sockfd, buf, len, flags);
+  ret:
+    pthread_mutex_unlock(&socket_entry->tcp_state_mut);
+    return read_len;
+  }
+  return _recv(sockfd, buf, len, flags);
 }
+
+//ssize_t recv (int sockfd, void *buf, size_t len, int flags){
+//    if(len == 0){
+//      async_printf("Invalid argument length of 0.\n");
+//      return 0;
+//    }
+//    if(buf == NULL){
+//      async_printf("Invalid argument, buffer is NULL pointer.\n");
+//      return 0;
+//    }
+//
+//    // TODO: I have no idea what is wrong, but it looks like the program receives the same subuff multiple times..?
+//    // TODO: Maybe look into how to get the incoming packet in a single packet
+//    bool is_anp_sockfd = is_anp_socket(sockfd);
+//    if(is_anp_sockfd) {
+//      size_t read_len = 0;
+//      struct anp_socket_entry *socket_entry = get_socket(sockfd);
+//
+//      async_printf("Waiting on TCP response..\n");
+//
+//      pthread_mutex_lock(&socket_entry->tcp_state.sig_mut2);
+//      socket_entry->tcp_state.condition2 = true;
+//      pthread_cond_signal(&socket_entry->tcp_state.sig_cond2); // signal recv() call
+//      pthread_mutex_unlock(&socket_entry->tcp_state.sig_mut2);
+//
+//
+//      pthread_mutex_lock(&socket_entry->tcp_state.sig_mut);
+//      while(!socket_entry->tcp_state.condition) {
+//        // Wait to be signalled by an incoming TCP response from ip_rx
+//        pthread_cond_wait(&socket_entry->tcp_state.sig_cond,
+//                          &socket_entry->tcp_state.sig_mut);
+//      }
+//      pthread_mutex_unlock(&socket_entry->tcp_state.sig_mut);
+//
+//      async_printf("Reading this..\n");
+//      volatile struct tcphdr *tcp_hdr = TCP_HDR_FROM_SUB(socket_entry->tcp_state.rx_sub);
+//      struct tcphdr* ack_hdr;
+//      ssize_t payload_len;
+//      void *payload;
+//
+//      { // lock
+//
+//        pthread_mutex_lock(&socket_entry->tcp_state_mut);
+//
+//        volatile struct subuff *sub = socket_entry->tcp_state.rx_sub;
+//        async_printf("Read sent TCP packet\n");
+//        debug_ip_hdr("in", (IP_HDR_FROM_SUB(sub)));
+//
+//        debug_tcp_hdr("in", tcp_hdr);
+//
+//        payload_len = TCP_PAYLOAD_LEN(sub);
+//        async_printf("incoming payload has length: %zd\n", payload_len);
+//        payload = TCP_PAYLOAD_FROM_SUB(sub);
+//
+//        async_printf("\n\n");
+//        wireshark_print(payload, payload_len);
+//        async_printf("\n\n");
+//
+//        // sending acknowledgement
+//        struct subuff *ack_sub = alloc_tcp_sub();
+//        sub_push(ack_sub, MIN_PADDED_TCP_LEN);
+//
+//        struct tcphdr *ack_hdr = TCP_HDR_FROM_SUB(ack_sub);
+//        struct tcphdr *rx_hdr = tcp_hdr;
+//        ack_hdr->seq_num = socket_entry->tcp_state.sequence_num;
+//        // ack_hdr->seq_num = htonl(ntohl(socket_entry->tcp_state.sequence_num) + 1);
+//        ack_hdr->ack_num = htonl(ntohl(rx_hdr->seq_num) + 1);
+//
+//        ack_hdr->ack = 0x1;
+//        ack_hdr->window =
+//            htons(TCP_MAX_WINDOW); // we can receive the max amount
+//        sub->protocol = IPP_TCP;
+//
+//        ack_hdr->src_port = socket_entry->src_port;
+//        ack_hdr->dst_port = socket_entry->dest_port;
+//
+//        ack_hdr->data_offset = 0x8; // header contains 8 x 32 bits
+//        ack_hdr->reserved = 0b0000;
+//
+//        ack_hdr->checksum = 0; // zero checksum before calculating
+//
+//        ack_hdr->checksum = do_tcp_csum(
+//            (uint8_t *)ack_hdr, ack_hdr->data_offset * 4 + payload_len,
+//            htons(IPP_TCP), htonl(socket_entry->src_addr),
+//            htonl(socket_entry->dest_addr));
+//
+//        async_printf("Sending ACK..\n");
+//        debug_tcp_hdr("ACK out", ack_hdr);
+//        int err = 0;
+//        //int err = tcp_output(socket_entry->dest_addr, ack_sub);
+//        if (err < 0) {
+//          async_printf("Getting err: %d, errno: %d", err, errno);
+//          return err;
+//        }
+//
+//        pthread_mutex_unlock(&socket_entry->tcp_state_mut);
+//      } // unlock
+//
+//      // write incoming tcp_hdr to buffer
+//      if (payload_len > len) {
+//        async_printf("Buffer length was not sufficient for incoming payload of length: %zd\n",
+//               payload_len);
+//        payload_len = len;
+//      }
+//      read_len += payload_len;
+//      memcpy(buf, payload, payload_len);
+//      return read_len;
+//    }
+//    // the default path
+//    return _recv(sockfd, buf, len, flags);
+//}
 
 int close (int sockfd){
 

@@ -52,6 +52,20 @@ enum TCP_STATE {
   CLOSED
 };
 
+extern struct list_head recv_packets;
+extern uint32_t recv_packets_size;
+extern pthread_mutex_t recv_packets_mut;
+
+struct recv_packet_entry {
+  struct list_head list;
+  // identification
+  uint32_t rx_seq_num;
+  int sockfd;
+  // buffer
+  size_t length;
+  void* buffer;
+};
+
 struct tcphdr {
   uint16_t src_port;
   uint16_t dst_port;
@@ -106,10 +120,14 @@ struct subuff* alloc_tcp_sub();
 struct subuff* alloc_tcp_payload(size_t payload);
 
 struct tcp_sock_state {
-  // signalling
+  // signalling 1
   pthread_mutex_t sig_mut;
   pthread_cond_t sig_cond;
   volatile bool condition;
+  // singalling 2
+  pthread_mutex_t sig_mut2;
+  pthread_cond_t sig_cond2;
+  volatile bool condition2;
 
   // state information
   volatile enum TCP_STATE state; // current state in TCP state machine

@@ -34,7 +34,7 @@ void print_trace(void);
 int do_tcp_csum(uint8_t *data, int length, uint16_t protocol, uint32_t saddr, uint32_t daddr);
 
 
-static pthread_mutex_t printf_mutex;
+volatile static pthread_mutex_t printf_mutex;
 void init_utils();
 int async_printf(const char *format, ...);
 

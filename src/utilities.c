@@ -111,6 +111,7 @@ void print_trace(void) {
     puts("");
     free(strings);
 }
+
 void wireshark_print(void *buf, size_t buf_len) {
   int seq = 0;
   for (int i = 0; i <= buf_len; i++){

@@ -26,6 +26,7 @@
 #define MIN_SOCKFD 1000000
 
 
+
 struct anp_socket_entry {
   struct list_head list;
 
@@ -38,6 +39,9 @@ struct anp_socket_entry {
   uint16_t dest_port;
   uint32_t src_addr;
   uint16_t src_port;
+
+  //struct recv_packet_entry recv_packets;
+
 };
 
 /**
@@ -51,6 +55,7 @@ struct tcp_sock_state* get_tcp_state(struct anp_socket_entry* socket_entry);
 // TODO: add a mutex & encapsulate in a struct
 extern struct list_head sockets;
 extern uint32_t sockets_size;
+
 
 void _function_override_init();
 

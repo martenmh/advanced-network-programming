@@ -53,3 +53,19 @@ const char * match_pattern(const unsigned char *buf, int size){
     }
     return " < OK, matched > ";
 }
+
+void wireshark_print(void *buf, size_t buf_len) {
+  int seq = 0;
+  for (int i = 0; i <= buf_len; i++){
+    if (seq > 0) printf(" ");
+    printf("%02x", ((uint8_t*)buf)[i]);
+    if(seq == 15) {
+      printf("\n");
+      seq = 0;
+      continue;
+    }
+    else if(seq == 7) printf(" ");
+    seq++;
+  }
+  printf("\n");
+}

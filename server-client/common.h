@@ -40,5 +40,5 @@
 int get_addr(char *dst, struct sockaddr *addr);
 const char* match_pattern(const unsigned char *buf, int size);
 void write_pattern(char *buf, int size);
-
+void wireshark_print(void *buf, size_t buf_len);
 #endif //SIMPLE_SERVER_CLIENT_COMMON_H

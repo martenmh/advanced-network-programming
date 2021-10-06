@@ -17,6 +17,9 @@
 #include "tcp.h"
 #include "anpwrapper.h"
 
+LIST_HEAD(recv_packets);
+uint32_t recv_packets_size = 0;
+
 bool tcp_headers_related(struct tcphdr *tx_hdr, struct tcphdr *rx_hdr) {
   return (ntohl(tx_hdr->seq_num) + 1 == ntohl(rx_hdr->ack_num) && // received sequence number should be seq_num + 1
             tx_hdr->src_port == rx_hdr->dst_port && // received destination port should be our source
@@ -71,21 +74,42 @@ int tcp_rx(struct subuff *sub){
           } // unlock tcp_state
         }
         break;
-      case ESTABLISHED:
-          async_printf("Received TCP packet designated for recv()\n");
-          pthread_mutex_lock(&entry->tcp_state_mut);
-          entry->tcp_state.rx_sub = sub;
+      case ESTABLISHED: {
+        // although the implementation isn't great as we're copying the entire payload..
+        // it seems to be the only way the implementation stays correct
+        // create a recv_packets entry
+        async_printf("allocating recv_entry\n");
+        struct recv_packet_entry *recv_entry = calloc(1, sizeof(struct recv_packet_entry));
+        list_init(&recv_entry->list);
+        recv_entry->rx_seq_num = (TCP_HDR_FROM_SUB(sub))->seq_num;
+        recv_entry->sockfd = entry->sockfd;
 
-          // although the implementation isn't great as we're copying the entire payload..
-          // it seems to be the only way the implementation stays correct
+        recv_entry->length = TCP_PAYLOAD_LEN(sub);
+        // allocate a buffer and copy payload into it
 
-          // signal waiting recv() call
-          pthread_mutex_lock(&entry->tcp_state.sig_mut);
-          entry->tcp_state.condition = true;
-          pthread_cond_signal(&entry->tcp_state.sig_cond); // signal recv() call
-          pthread_mutex_unlock(&entry->tcp_state.sig_mut);
+        //recv_entry->buffer = calloc(1, recv_entry->length);
+        recv_entry->buffer = malloc(recv_entry->length);
+        async_printf("Reading entry with length of: %zu \n", recv_entry->length);
+        wireshark_print(TCP_PAYLOAD_FROM_SUB(sub), TCP_PAYLOAD_LEN(sub));
 
-          pthread_mutex_unlock(&entry->tcp_state_mut);
+        memcpy(recv_entry->buffer, TCP_PAYLOAD_FROM_SUB(sub), recv_entry->length);
+        async_printf("Copied!\n");
+        list_add_tail(&recv_entry->list, &recv_packets);
+
+        async_printf("Received TCP packet designated for recv()\n");
+        pthread_mutex_lock(&entry->tcp_state_mut);
+        entry->tcp_state.rx_sub = sub;
+        async_printf("copied entry, signalling now!\n");
+        // signal waiting recv() call
+        pthread_mutex_lock(&entry->tcp_state.sig_mut);
+        entry->tcp_state.condition = true;
+        pthread_cond_signal(&entry->tcp_state.sig_cond); // signal recv() call
+        pthread_mutex_unlock(&entry->tcp_state.sig_mut);
+
+        pthread_mutex_unlock(&entry->tcp_state_mut);
+        async_printf("signalled\n");
+        return 0;
+      }
         break;
       case SYN_RECEIVED:
         break;
@@ -159,7 +183,7 @@ struct tcphdr* create_syn(struct tcphdr* hdr, const struct sockaddr* addr){
   uint32_t src_addr = ip_str_to_n32(ANP_IP_CLIENT_EXT);
 
   hdr->checksum = (do_tcp_csum((uint8_t *)hdr, hdr->data_offset * 4,
-                              htons(IPP_TCP), htonl(src_addr), htonl(dest_addr))) - htons(256);
+                              htons(IPP_TCP), htonl(src_addr), htonl(dest_addr)));
   return hdr;
 }
 
