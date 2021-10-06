@@ -77,4 +77,5 @@ void __attribute__ ((constructor)) _init_anp_netstack() {
     // insert and init some default routes about, lo, local delivery, and the gateway
     route_init();
     init_threads();
+    init_utils();
 }

@@ -24,7 +24,7 @@
 
 
 #define debug_tcp_hdr(msg, hdr)                                                \
-  printf("TCP (HDR) "msg" (src_port: %hu, dst_port: %u, seq_num: %u, ack_nuk: %u, data_offset %hhu, \
+  printf("TCP (HDR) "msg" (src_port: %hu, dst_port: %u, seq_num: %u, ack_num: %u, data_offset %hhu, \
         reserved: %hhu, [urg: %hhu, ack: %hhu, psh: %hhu, rst: %hhu, syn: %hhu, fin: %hu], window: %hu, csum: 0x%04x, urg_ptr: %hu\n", \
                  hdr->src_port, hdr->dst_port, hdr->seq_num, hdr->ack_num, hdr->data_offset, hdr->reserved, hdr->urg, hdr->ack, hdr->psh, hdr->rst, hdr->syn, hdr->fin, \
                  hdr->window, hdr->checksum, hdr->urgent_ptr  \
@@ -109,26 +109,32 @@ struct tcp_sock_state {
   // signalling
   pthread_mutex_t sig_mut;
   pthread_cond_t sig_cond;
-  bool condition;
+  volatile bool condition;
+
   // state information
-  enum TCP_STATE state; // current state in TCP state machine
+  volatile enum TCP_STATE state; // current state in TCP state machine
   //struct tcphdr prev_hdr;
-  struct subuff* tx_sub;
-  struct subuff* rx_sub;
+  volatile struct subuff* tx_sub;
+  volatile struct subuff* rx_sub;
+
+  volatile uint32_t sequence_num;
 };
 
 int tcp_rx(struct subuff *sub);
 bool tcp_headers_related(struct tcphdr* tx_hdr, struct tcphdr* rx_hdr);
 struct tcphdr* create_syn(struct tcphdr* hdr, const struct sockaddr* addr);
-
+//void tcp_acknowledge(){
+//
+//}
 int tcp_output(uint32_t dst_addr, struct subuff* sub);
 int validate_tcphdr(struct tcphdr* hdr, uint32_t src_addr, uint32_t dst_addr);
 uint8_t *sub_pop(struct subuff *sub, unsigned int len);
 void tcp_csum(struct tcphdr* out_hdr, const struct sockaddr* addr);
 
 #define TCP_HDR_LEN sizeof(struct tcphdr)
-// TODO: Implement
-#define TCP_PAYLOAD_LEN(_tcp) assert(false)
+#define TCP_PADDED_HDR_LEN(_sub) ((TCP_HDR_FROM_SUB(_sub))->data_offset * 4)
+#define TCP_PAYLOAD_LEN(_sub) ((IP_PAYLOAD_LEN((IP_HDR_FROM_SUB(_sub)))) - (TCP_PADDED_HDR_LEN(_sub)))
+#define TCP_PAYLOAD_FROM_SUB(_sub) ((void *)(_sub->head + IP_HDR_LEN + ETH_HDR_LEN + ((TCP_HDR_FROM_SUB(_sub))->data_offset) * 4))
 #define TCP_HDR_FROM_SUB(_sub) (struct tcphdr *)(_sub->head + IP_HDR_LEN + ETH_HDR_LEN)
 
 #define TCP_MAX_WINDOW 65495

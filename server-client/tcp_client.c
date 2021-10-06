@@ -83,6 +83,7 @@ int main(int argc, char** argv)
 
     // write a pattern
     write_pattern(tx_buffer, TEST_BUF_SIZE);
+    printf("\n\nSending data -----------------------------------------------\n\n");
 
     // send test buffer
     while (so_far < TEST_BUF_SIZE){
@@ -95,7 +96,8 @@ int main(int argc, char** argv)
         printf("\t [send loop] %d bytes, looping again, so_far %d target %d \n", ret, so_far, TEST_BUF_SIZE);
     }
 
-    printf("OK: buffer sent successfully \n");
+    printf("\n\nWaiting to receive data -----------------------------------------------\n\n");
+    //printf("OK: buffer sent successfully \n");
     printf("OK: waiting to receive data \n");
     // receive test buffer
     so_far = 0;

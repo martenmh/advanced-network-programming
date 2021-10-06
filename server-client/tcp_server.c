@@ -116,6 +116,8 @@ int main(int argc, char** argv)
     }
     printf("OK: buffer received ok, pattern match : %s  \n", match_pattern(test_buffer, TEST_BUF_SIZE));
     // then tx it back as it is
+
+
     so_far = 0;
     while (so_far < TEST_BUF_SIZE){
         ret = send(client_fd, test_buffer + so_far, TEST_BUF_SIZE - so_far, 0);

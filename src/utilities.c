@@ -111,3 +111,34 @@ void print_trace(void) {
     puts("");
     free(strings);
 }
+void wireshark_print(void *buf, size_t buf_len) {
+  int seq = 0;
+  for (int i = 0; i <= buf_len; i++){
+    if (seq > 0) printf(" ");
+    printf("%02x", ((uint8_t*)buf)[i]);
+    if(seq == 15) {
+      printf("\n");
+      seq = 0;
+      continue;
+    }
+    else if(seq == 7) printf(" ");
+    seq++;
+  }
+  printf("\n");
+}
+
+int async_printf(const char *format, ...)
+{
+  va_list args;
+  va_start(args, format);
+
+  pthread_mutex_lock(&printf_mutex);
+  vprintf(format, args);
+  pthread_mutex_unlock(&printf_mutex);
+
+  va_end(args);
+}
+
+void init_utils() {
+  pthread_mutex_init(&printf_mutex, NULL);
+}

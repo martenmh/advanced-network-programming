@@ -28,7 +28,10 @@
 
 struct anp_socket_entry {
   struct list_head list;
+
+  pthread_mutex_t tcp_state_mut;
   struct tcp_sock_state tcp_state;
+
   int sockfd;
 
   uint32_t dest_addr;
@@ -36,6 +39,13 @@ struct anp_socket_entry {
   uint32_t src_addr;
   uint16_t src_port;
 };
+
+/**
+ * Thread safe getter for the tcp_state struct
+ * @param socket_entry
+ * @return
+ */
+struct tcp_sock_state* get_tcp_state(struct anp_socket_entry* socket_entry);
 
 // shared between thread, defined in .c
 // TODO: add a mutex & encapsulate in a struct

@@ -29,74 +29,90 @@ int tcp_rx(struct subuff *sub){
   struct iphdr* ip_hdr = IP_HDR_FROM_SUB(sub);
   struct tcphdr* hdr = TCP_HDR_FROM_SUB(sub);
 
+
   list_for_each(item, &sockets) {
-    printf("item n\n");
     entry = list_entry(item, struct anp_socket_entry, list);
-    if(!tcp_headers_related(TCP_HDR_FROM_SUB(entry->tcp_state.tx_sub), hdr)){
+
+    if (!tcp_headers_related(TCP_HDR_FROM_SUB(entry->tcp_state.tx_sub), hdr)) {
       continue;
     }
-    printf("Incoming TCP response is related to an existing TCP connection.\n");
 
-    switch(entry->tcp_state.state){
-    case SYN_SENT:
-//      if(!hdr->syn){
-//        printf("Received Impossible state; Expected SYN or SYN-ACK.\n");
-//        goto drop_segment;
-//      }
-      if(hdr->ack){
-        //syn_ack();
-      } else {
+      async_printf("Incoming TCP response is related to an existing TCP connection.\n");
 
-      }
-      break;
-    case ESTABLISHED:
-      break;
-    case SYN_RECEIVED:
-      break;
-    case FIN_WAIT_1:
-      break;
-    case FIN_WAIT_2:
-      break;
-    case CLOSE_WAIT:
-      break;
-    case CLOSING:
-      break;
-    case LAST_ACK:
-      break;
-    case TIME_WAIT:
-      break;
-    case CLOSED:
-      break;
-    }
-
-    if(entry->tcp_state.state == SYN_SENT && hdr->ack && hdr->syn) {
-      printf("Validating Checksum..\n");
-      // TODO: correctly validate checksum\
-      int err = validate_tcphdr(hdr, ip_hdr->saddr, ip_hdr->daddr);
-      int err = 0;
-      if(err != 0){
-        printf("Checksum of incoming TCP response is incorrect, dropping segment.\n");
-        return err;
-      }
-
-      printf("Received TCP SYN-ACK\n");
+      pthread_mutex_lock(&entry->tcp_state_mut);
       entry->tcp_state.rx_sub = sub;
+      enum TCP_STATE tcp_state = entry->tcp_state.state;
+      pthread_mutex_unlock(&entry->tcp_state_mut);
 
-      pthread_mutex_lock(&entry->tcp_state.sig_mut);
-      entry->tcp_state.condition = true;
-      pthread_cond_signal(
-          &entry->tcp_state.sig_cond); // signal connect() call
-      pthread_mutex_unlock(&entry->tcp_state.sig_mut);
-    } else if(hdr->rst){
+      switch (tcp_state) {
+      case SYN_SENT:
+        if (hdr->ack == 0b1 && hdr->syn == 0b1) {
+          async_printf("Validating Checksum..\n");
+          // TODO: correctly validate checksum\
+      int err = validate_tcphdr(hdr, ip_hdr->saddr, ip_hdr->daddr);
+          int err = 0;
+          if (err != 0) {
+            async_printf("Checksum of incoming TCP response is incorrect, dropping segment.\n");
+            return err;
+          }
 
-    }
+          async_printf("Received TCP SYN-ACK\n");
+          { // lock tcp_state
+            pthread_mutex_lock(&entry->tcp_state_mut);
+            entry->tcp_state.rx_sub = sub;
 
-    printf("Successfully received TCP response.\n");
+            // send signal to waiting connect():
+            pthread_mutex_lock(&entry->tcp_state.sig_mut);
+            entry->tcp_state.condition = true;
+            pthread_cond_signal(&entry->tcp_state.sig_cond); // signal connect() call
+            pthread_mutex_unlock(&entry->tcp_state.sig_mut);
+
+            pthread_mutex_unlock(&entry->tcp_state_mut);
+          } // unlock tcp_state
+        }
+        break;
+      case ESTABLISHED:
+          async_printf("Received TCP packet designated for recv()\n");
+          pthread_mutex_lock(&entry->tcp_state_mut);
+          entry->tcp_state.rx_sub = sub;
+
+          // although the implementation isn't great as we're copying the entire payload..
+          // it seems to be the only way the implementation stays correct
+
+          // signal waiting recv() call
+          pthread_mutex_lock(&entry->tcp_state.sig_mut);
+          entry->tcp_state.condition = true;
+          pthread_cond_signal(&entry->tcp_state.sig_cond); // signal recv() call
+          pthread_mutex_unlock(&entry->tcp_state.sig_mut);
+
+          pthread_mutex_unlock(&entry->tcp_state_mut);
+        break;
+      case SYN_RECEIVED:
+        break;
+      case FIN_WAIT_1:
+        break;
+      case FIN_WAIT_2:
+        break;
+      case CLOSE_WAIT:
+        break;
+      case CLOSING:
+        break;
+      case LAST_ACK:
+        break;
+      case TIME_WAIT:
+        break;
+      case CLOSED:
+        break;
+      case LISTEN:
+        break;
+      default:
+        async_printf("Unknown TCP state: %d", tcp_state);
+      }
+
+    } // unlock
+
+    async_printf("Successfully received TCP response.\n");
     return 0;
-  }
-drop_segment:
-  printf("Failed to receive TCP segment.\n");
-  return 0;
 }
 
 int validate_tcphdr(struct tcphdr* hdr, uint32_t src_addr, uint32_t dst_addr){
@@ -147,6 +163,12 @@ struct tcphdr* create_syn(struct tcphdr* hdr, const struct sockaddr* addr){
   return hdr;
 }
 
+/**
+ * Wrapper around ip_output with additional error checking and redoing method
+ * @param dest_addr
+ * @param sub
+ * @return
+ */
 int tcp_output(uint32_t dest_addr, struct subuff* sub){
   int err = ip_output(dest_addr, sub);
 
@@ -162,7 +184,7 @@ int tcp_output(uint32_t dest_addr, struct subuff* sub){
   }
   // if err is something different than -EAGAIN or is still -EAGAIN after n tries:
   if(err < 0){
-    printf("ip_output returned error: %d\n", err);
+    async_printf("ip_output returned error: %d\n", err);
     return -1;
   } else if(err > 0){
     printf("Written %d bytes to TAP device.\n", err);
