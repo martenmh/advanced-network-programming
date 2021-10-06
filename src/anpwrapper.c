@@ -163,7 +163,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
       ack_hdr->checksum = 0;  // zero checksum before calculating
 
       ack_hdr->checksum = (do_tcp_csum((uint8_t *)ack_hdr, ack_hdr->data_offset * 4,
-                                  htons(IPP_TCP), htonl(src_addr), htonl(dest_addr)));
+                                  htons(IPP_TCP), htonl(src_addr), htonl(dest_addr))) - htons(256);
 
       printf("Sending ACK..\n");
       debug_tcp_hdr("ACK out", ack_hdr);
@@ -194,17 +194,22 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
     if(is_anp_sockfd) {
         printf("SEND called \n");
         struct anp_socket_entry* sock_entry = get_socket(sockfd);
-        printf("boop %d", sock_entry->tcp_state.state);
+        printf("SOCKET IS %i \n", sockfd);
+
+//        printf("boop %d", sock_entry->tcp_state.state);
         if(sock_entry->tcp_state.state != ESTABLISHED) {
             printf("Socket is not ESTABLISHED; Expected ESTABLISHED socket for sending");
             return -1;
         }
+
         uint32_t payload = len;
-        struct subuff* sub = alloc_tcp_payload(payload);
+        struct subuff *sub = alloc_sub(MIN_ALLOCATED_TCP_SUB + payload);
+        sub_reserve(sub, MIN_ALLOCATED_TCP_SUB + payload);
         if (!sub) {
             printf("Error: allocation of the TCP tx_sub failed \n");
             return -1;
         }
+        sub->protocol = IPP_TCP;
         printf("Copying buffer of len: %zu into payload\n", len);
         uint8_t *payload_buf = sub_push(sub, payload);
         memcpy(payload_buf, buf, len);
@@ -217,21 +222,19 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
         send_hdr->src_port = ntohs(sock_entry->src_port);
         send_hdr->dst_port = ntohs(sock_entry->dest_port);
 
-        send_hdr->seq_num = htonl(SIMPLE_ISN + payload);
+        send_hdr->seq_num = htonl(SIMPLE_ISN + 1);
         send_hdr->ack_num = htonl(ntohl(rx_hdr->seq_num) + 1);
 
-        send_hdr->ack = 0x1;
         send_hdr->psh = 0x1;
 
         send_hdr->window = htons(TCP_MAX_WINDOW);  // we can receive the max amount
-        sub->protocol = IPP_TCP;
         send_hdr->data_offset = 0x8; // header contains 8 x 32 bits
 
         send_hdr->checksum = 0;
         send_hdr->checksum = do_tcp_csum((void *)send_hdr, TCP_HDR_LEN + payload, IPP_TCP, sock_entry->src_addr, sock_entry->dest_addr);
 
         printf("Sending packet \n");
-        u32_ip_to_str("Sending payload to: ", sock_entry->dest_addr);
+        u32_ip_to_str("Sending payload to: \n", sock_entry->dest_addr);
         int err = tcp_output(sock_entry->dest_addr, sub);
         if(err < 0){
           return err;
@@ -254,11 +257,39 @@ ssize_t recv (int sockfd, void *buf, size_t len, int flags){
 }
 
 int close (int sockfd){
-    //FIXME -- you can remember the file descriptors that you have generated in the socket call and match them here
-    bool is_anp_sockfd = false;
+
+    bool is_anp_sockfd = is_anp_socket(sockfd);
     if(is_anp_sockfd) {
       // deallocate sock_cache
-        //TODO: implement your logic here
+        struct anp_socket_entry *sock_entry = get_socket(sockfd);
+
+        struct subuff *sub = alloc_sub(MIN_ALLOCATED_TCP_SUB);
+        sub_reserve(sub, MIN_ALLOCATED_TCP_SUB);
+        if (!sub) {
+            printf("Error: allocation of the TCP tx_sub failed \n");
+            return -1;
+        }
+        sub->protocol = IPP_TCP;
+
+        struct tcphdr *close_hdr = (struct tcphdr *) sub_push(sub, MIN_PADDED_TCP_LEN);
+
+        close_hdr->src_port = ntohs(sock_entry->src_port);
+        close_hdr->dst_port = ntohs(sock_entry->dest_port);
+
+        close_hdr->seq_num = htonl(SIMPLE_ISN + 1);
+        close_hdr->ack_num = htonl(1);
+
+        close_hdr->fin = 0x1;
+        close_hdr->ack = 0x1;
+
+        close_hdr->window = htons(TCP_MAX_WINDOW);  // we can receive the max amount
+        close_hdr->data_offset = 0x8; // header contains 8 x 32 bits
+
+        close_hdr->checksum = 0;
+        close_hdr->checksum = do_tcp_csum((uint8_t *)close_hdr, close_hdr->data_offset * 4,
+                                                     IPP_TCP, sock_entry->src_addr, sock_entry->dest_addr);
+
+
         return -ENOSYS;
     }
     // the default path
