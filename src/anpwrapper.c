@@ -250,11 +250,11 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
         u32_ip_to_str("Sending payload to: \n", sock_entry->dest_addr);
         int err = tcp_output(sock_entry->dest_addr, sub);
         if(err < 0){
-          return err;
+            return err;
         }
         sock_entry->tcp_state.sequence_num = send_hdr->seq_num;
-        return payload;
-        //ip_output(sock_entry->dest_addr, sub);
+//        return payload;
+        ip_output(sock_entry->dest_addr, sub);
     }
     // the default path
     return _send(sockfd, buf, len, flags);
@@ -461,7 +461,7 @@ int close (int sockfd){
         close_hdr->checksum = do_tcp_csum((uint8_t *)close_hdr, close_hdr->data_offset * 4,
                                                      IPP_TCP, sock_entry->src_addr, sock_entry->dest_addr);
 
-
+        ip_output(sock_entry->dest_addr, sub);
         return -ENOSYS;
     }
     // the default path
