@@ -136,7 +136,7 @@ int main(int argc, char** argv)
     printf("ret from the recv is %d errno %d \n", ret, errno);
 
     // close the two fds
-    ret =close(client_fd);
+    ret = close(client_fd);
     if(ret){
         printf("Error: client shutdown was not clean , ret %d errno %d \n ", ret, errno);
         return -ret;

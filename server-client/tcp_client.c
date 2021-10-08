@@ -110,7 +110,7 @@ int main(int argc, char** argv)
         so_far+=ret;
         printf("\t [receive loop] %d bytes, looping again, so_far %d target %d \n", ret, so_far, TEST_BUF_SIZE);
     }
-    
+
     wireshark_print(rx_buffer, TEST_BUF_SIZE);
     printf("Results of pattern matching: %s \n", match_pattern(rx_buffer, TEST_BUF_SIZE));
     // close the socket

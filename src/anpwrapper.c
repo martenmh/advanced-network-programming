@@ -244,7 +244,7 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
         send_hdr->window = htons(TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
 
         send_hdr->checksum = 0; // zeroing checksum before recalculating
-        send_hdr->checksum = do_tcp_csum((uint8_t *)send_hdr, TCP_HDR_LEN + len, IPP_TCP, sock_entry->src_addr, sock_entry->dest_addr);
+        send_hdr->checksum = do_tcp_csum((uint8_t *)send_hdr, TCP_HDR_LEN + len, IPP_TCP, sock_entry->src_addr, sock_entry->dest_addr) - htons(256);
 
         u32_ip_to_str("Sending payload to: \n", ntohl(sock_entry->dest_addr));
 
@@ -264,15 +264,14 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
             pthread_cond_wait(&sock_entry->tcp_state.sig_cond, &sock_entry->tcp_state.sig_mut);
         }
 
-        pthread_mutex_unlock(&sock_entry->tcp_state.sig_mut);
-
         pthread_mutex_lock(&sock_entry->tcp_state_mut);
         if(!sock_entry->tcp_state.condition){
             return -1;
         }
 
+
         sock_entry->tcp_state.sequence_num = send_hdr->seq_num;
-        return 0;
+        return len;
     }
     // the default path
     return _send(sockfd, buf, len, flags);
@@ -282,8 +281,7 @@ struct tcphdr* wait_on_tcp_response(struct anp_socket_entry* sock_entry){
   pthread_mutex_lock(&sock_entry->tcp_state.sig_mut);
   while(!sock_entry->tcp_state.condition) {
     // Wait to be signalled by an incoming TCP response from ip_rx
-    pthread_cond_wait(&sock_entry->tcp_state.sig_cond,
-                      &sock_entry->tcp_state.sig_mut);
+    pthread_cond_wait(&sock_entry->tcp_state.sig_cond, &sock_entry->tcp_state.sig_mut);
   }
   pthread_mutex_unlock(&sock_entry->tcp_state.sig_mut);
 
@@ -291,7 +289,9 @@ struct tcphdr* wait_on_tcp_response(struct anp_socket_entry* sock_entry){
 }
 
 ssize_t recv (int sockfd, void *buf, size_t len, int flags){
+
   bool is_anp_sockfd = is_anp_socket(sockfd);
+
   if(is_anp_sockfd) {
     size_t read_len = 0;
     struct anp_socket_entry *socket_entry = get_socket(sockfd);
@@ -338,38 +338,90 @@ ssize_t recv (int sockfd, void *buf, size_t len, int flags){
 int close (int sockfd){
 
     bool is_anp_sockfd = is_anp_socket(sockfd);
-    if(is_anp_sockfd) {
-      // deallocate sock_cache
-        struct anp_socket_entry *sock_entry = get_socket(sockfd);
 
-        struct subuff *sub = alloc_sub(MIN_ALLOCATED_TCP_SUB);
-        sub_reserve(sub, MIN_ALLOCATED_TCP_SUB);
-        if (!sub) {
+    if(is_anp_sockfd) {
+        struct anp_socket_entry *sock_entry = get_socket(sockfd);
+        pthread_mutex_lock(&sock_entry->tcp_state_mut); // ensures no two or more connections are made at the same time
+
+
+        // SEND FIN
+        struct subuff *close_sub = alloc_tcp_sub();
+        sub_reserve(close_sub, MIN_ALLOCATED_TCP_SUB);
+        if (!close_sub) {
             printf("Error: allocation of the TCP tx_sub failed \n");
             return -1;
         }
-        sub->protocol = IPP_TCP;
 
-        struct tcphdr *close_hdr = (struct tcphdr *) sub_push(sub, MIN_PADDED_TCP_LEN);
+        struct tcphdr *close_hdr = (struct tcphdr *) sub_push(close_sub, 20);
 
-        close_hdr->src_port = ntohs(sock_entry->src_port);
-        close_hdr->dst_port = ntohs(sock_entry->dest_port);
-
+        close_hdr->src_port = sock_entry->src_port;
+        close_hdr->dst_port = sock_entry->dest_port;
         close_hdr->seq_num = htonl(SIMPLE_ISN + 1);
         close_hdr->ack_num = htonl(1);
-
-        close_hdr->fin = 0x1;
-        close_hdr->ack = 0x1;
-
+        close_hdr->data_offset = 5; // header contains 5 x 32 bits
+        close_hdr->fin = 1;
+        close_hdr->ack = 1;
         close_hdr->window = htons(TCP_MAX_WINDOW);  // we can receive the max amount
-        close_hdr->data_offset = 0x8; // header contains 8 x 32 bits
 
         close_hdr->checksum = 0;
-        close_hdr->checksum = do_tcp_csum((uint8_t *)close_hdr, close_hdr->data_offset * 4,
-                                                     IPP_TCP, sock_entry->src_addr, sock_entry->dest_addr);
+        close_hdr->checksum = do_tcp_csum((uint8_t *)close_hdr, 20, IPP_TCP, sock_entry->src_addr, sock_entry->dest_addr);
 
-        ip_output(sock_entry->dest_addr, sub);
-        return -ENOSYS;
+        int err = tcp_output(ntohl(sock_entry->dest_addr), close_sub);
+        if(err < 0)
+            return err;
+
+        printf("FIN sent \n");
+        printf("Waiting on FIN-ACK..\n");
+        sock_entry->tcp_state.state = FIN_WAIT_1;
+        pthread_mutex_unlock(&sock_entry->tcp_state_mut);
+
+        // wait on FIN-ACK
+        pthread_mutex_lock(&sock_entry->tcp_state.sig_mut);
+        while(!sock_entry->tcp_state.condition) {
+            // wait on SYN-ACK, see ip_rx.c for receiving end.
+            pthread_cond_wait(&sock_entry->tcp_state.sig_cond, &sock_entry->tcp_state.sig_mut);
+        }
+        pthread_mutex_unlock(&sock_entry->tcp_state.sig_mut);
+
+        // SEND LAST ACK
+        pthread_mutex_lock(&sock_entry->tcp_state_mut);
+
+        struct subuff *ack_sub = alloc_tcp_sub();
+        if (!ack_sub) {
+            printf("Error: allocation of the TCP tx_sub failed \n");
+            return -1;
+        }
+
+        sub_push(ack_sub, 20);
+        struct tcphdr *ack_hdr = TCP_HDR_FROM_SUB(ack_sub);
+        struct tcphdr *rx_hdr = TCP_HDR_FROM_SUB(sock_entry->tcp_state.rx_sub);
+
+        // Preparing TCP ACK packet
+        ack_hdr->src_port = sock_entry->src_port;
+        ack_hdr->dst_port = sock_entry->dest_port;
+        ack_hdr->seq_num = htonl(SIMPLE_ISN + 1);
+        ack_hdr->ack_num = htonl(ntohl(rx_hdr->seq_num) + 1);
+        ack_hdr->data_offset = 5; // header contains 5 x 32 bits
+        ack_hdr->ack = 1;
+        ack_hdr->window = htons(TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
+
+        ack_hdr->checksum = 0;  // zeroing checksum before recalculating
+        ack_hdr->checksum = do_tcp_csum((uint8_t *)ack_hdr, 20, IPP_TCP, sock_entry->src_addr, sock_entry->dest_addr);
+
+        printf("Sending ACK..\n");
+        debug_tcp_hdr("ACK out \n", ack_hdr);
+
+        err = ip_output(ntohl(sock_entry->dest_addr), ack_sub);
+        if(err < 0) {
+            printf("Getting err: %d, errno: %d \n", err, errno);
+            return err;
+        }
+
+        sock_entry->tcp_state.state = CLOSED; // Four-way handshake complete, the connection is now CLOSED
+        pthread_mutex_unlock(&sock_entry->tcp_state_mut);
+
+        return 0;
+
     }
     // the default path
     return _close(sockfd);
