@@ -113,6 +113,6 @@ int tdev_read(char *buf, int len)
 
 int tdev_write(char *buf, int len)
 {
-    printf("writing buffer to tap device with length: %d", len);
+    printf("Writing buffer to tap device with length: %d \n", len);
     return write(_tdev->tun_fd, buf, len);
 }

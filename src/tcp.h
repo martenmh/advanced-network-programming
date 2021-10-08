@@ -71,38 +71,38 @@ struct tcphdr {
   uint16_t dst_port;
   uint32_t seq_num;
   uint32_t ack_num;
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+
+  #if __BYTE_ORDER == __LITTLE_ENDIAN
   uint8_t reserved : 4;
   uint8_t data_offset : 4;  // header length
-#elif __BYTE_ORDER == __BIG_ENDIAN
+  #elif __BYTE_ORDER == __BIG_ENDIAN
   uint8_t data_offset : 4;  // header length
   uint8_t reserved : 4;
-#endif
+  #endif
 
   // "Inspired" by linux's tcphdr
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-  uint8_t fin : 1,
-      syn : 1,
-      rst : 1,
-      psh : 1,
-      ack : 1,
-      urg : 1,
-      ece : 1,
-      cwr : 1;
-#elif __BYTE_ORDER == __BIG_ENDIAN
-  uint8_t fin : 1,
-      syn : 1,
-      rst : 1,
-      psh : 1,
-      ack : 1,
-      urg : 1;
-#endif
+  #if __BYTE_ORDER == __LITTLE_ENDIAN
+  uint8_t fin : 1;
+  uint8_t syn : 1;
+  uint8_t rst : 1;
+  uint8_t psh : 1;
+  uint8_t ack : 1;
+  uint8_t urg : 1;
+  uint8_t ece : 1;
+  uint8_t cwr : 1;
+  #elif __BYTE_ORDER == __BIG_ENDIAN
+  uint8_t fin : 1;
+  uint8_t syn : 1;
+  uint8_t rst : 1;
+  uint8_t psh : 1;
+  uint8_t ack : 1;
+  uint8_t urg : 1;
+  #endif
+
   uint16_t window;
   uint16_t checksum;
   uint16_t urgent_ptr;
-  uint8_t options[];
-  // padding
-  // data
+  uint8_t data[];
 } __attribute__((packed));
 
 struct variable_options {
@@ -116,8 +116,8 @@ union tcp_options{
   struct variable_options options;
 } __attribute__((packed));
 
-struct subuff* alloc_tcp_sub();
-struct subuff* alloc_tcp_payload(size_t payload);
+struct subuff *alloc_tcp_sub();
+struct subuff *alloc_tcp_payload(size_t payload);
 
 struct tcp_sock_state {
   // signalling 1
@@ -140,7 +140,8 @@ struct tcp_sock_state {
 
 int tcp_rx(struct subuff *sub);
 bool tcp_headers_related(struct tcphdr* tx_hdr, struct tcphdr* rx_hdr);
-struct tcphdr* create_syn(struct tcphdr* hdr, const struct sockaddr* addr);
+struct tcphdr *create_syn(struct tcphdr* hdr, const struct sockaddr* addr);
+
 //void tcp_acknowledge(){
 //
 //}
@@ -149,7 +150,7 @@ int validate_tcphdr(struct tcphdr* hdr, uint32_t src_addr, uint32_t dst_addr);
 uint8_t *sub_pop(struct subuff *sub, unsigned int len);
 void tcp_csum(struct tcphdr* out_hdr, const struct sockaddr* addr);
 
-#define TCP_HDR_LEN sizeof(struct tcphdr)
+#define TCP_HDR_LEN 32
 #define TCP_PADDED_HDR_LEN(_sub) ((TCP_HDR_FROM_SUB(_sub))->data_offset * 4)
 #define TCP_PAYLOAD_LEN(_sub) ((IP_PAYLOAD_LEN((IP_HDR_FROM_SUB(_sub)))) - (TCP_PADDED_HDR_LEN(_sub)))
 #define TCP_PAYLOAD_FROM_SUB(_sub) ((void *)(_sub->head + IP_HDR_LEN + ETH_HDR_LEN + ((TCP_HDR_FROM_SUB(_sub))->data_offset) * 4))

@@ -140,6 +140,11 @@ int async_printf(const char *format, ...)
   va_end(args);
 }
 
+uint16_t random_port(int min, int max)
+{
+    return min + rand() % (max + 1 - min);
+}
+
 void init_utils() {
   pthread_mutex_init(&printf_mutex, NULL);
 }

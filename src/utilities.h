@@ -26,6 +26,7 @@
 #define CMDBUFLEN 128
 
 int run_bash_command(char *cmd, ...);
+uint16_t random_port(int min, int max);
 uint16_t do_csum(void *addr, int count, int start_sum);
 uint32_t ip_str_to_n32(const char *addr);
 uint32_t ip_str_to_h32(const char *addr);

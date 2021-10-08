@@ -16,6 +16,7 @@
  */
 #include "tcp.h"
 #include "anpwrapper.h"
+#include "utilities.h"
 
 LIST_HEAD(recv_packets);
 uint32_t recv_packets_size = 0;
@@ -164,26 +165,22 @@ void tcp_csum(struct tcphdr* out_hdr, const struct sockaddr* addr){
                               htons(IPP_TCP), htonl(src_addr), htonl(dest_addr));
 }
 
-struct tcphdr* create_syn(struct tcphdr* hdr, const struct sockaddr* addr){
-  hdr->seq_num = htonl(SIMPLE_ISN);
-  hdr->ack_num = 0;
+struct tcphdr *create_syn(struct tcphdr* hdr, const struct sockaddr* addr){
 
-  hdr->syn = 0x1;
-  hdr->window = htons(TCP_MAX_WINDOW);  // we can receive the max amount
-
-  hdr->data_offset = 0x8; // header contains 8 x 32 bits
-  // random port between 1024 and 65536
-  srand(time(NULL));
-  hdr->src_port = htons(rand()%(65536-1024 + 1) + 1024);
-  hdr->reserved = 0b0000;
+  hdr->src_port = htons(random_port(1024, 65536)); // min 1024, max 65536
   hdr->dst_port = ((struct sockaddr_in *)addr)->sin_port;
-  hdr->checksum = 0;  // zero checksum before calculating
+  hdr->seq_num = htonl(SIMPLE_ISN);
+  hdr->ack_num = htonl(0);
+  hdr->data_offset = 8; // header contains 8 x 32 bits
+  hdr->syn = 1;
+  hdr->window = htons(TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
 
-  uint32_t dest_addr = htonl((((struct sockaddr_in *)addr)->sin_addr).s_addr);
+  uint32_t dest_addr = ip_str_to_n32(inet_ntoa(((struct sockaddr_in *)addr)->sin_addr));
   uint32_t src_addr = ip_str_to_n32(ANP_IP_CLIENT_EXT);
 
-  hdr->checksum = (do_tcp_csum((uint8_t *)hdr, hdr->data_offset * 4,
-                              htons(IPP_TCP), htonl(src_addr), htonl(dest_addr)));
+  hdr->checksum = 0;  // zeroing checksum before recalculating
+  hdr->checksum = do_tcp_csum((uint8_t *)hdr, TCP_HDR_LEN, IPP_TCP, src_addr, dest_addr);
+
   return hdr;
 }
 
@@ -193,6 +190,7 @@ struct tcphdr* create_syn(struct tcphdr* hdr, const struct sockaddr* addr){
  * @param sub
  * @return
  */
+
 int tcp_output(uint32_t dest_addr, struct subuff* sub){
   int err = ip_output(dest_addr, sub);
 
@@ -216,16 +214,16 @@ int tcp_output(uint32_t dest_addr, struct subuff* sub){
   return 0;
 }
 
-struct subuff* alloc_tcp_sub(){
-    struct subuff *sub = alloc_sub(MIN_ALLOCATED_TCP_SUB);
-    sub_reserve(sub, MIN_ALLOCATED_TCP_SUB);
+struct subuff *alloc_tcp_sub(){
+    struct subuff *sub = alloc_sub(TCP_HDR_LEN + IP_HDR_LEN + ETH_HDR_LEN); // MIN_ALLOCATED_TCP_SUB
+    sub_reserve(sub, TCP_HDR_LEN + IP_HDR_LEN + ETH_HDR_LEN); // MIN_ALLOCATED_TCP_SUB
     sub->protocol = IPP_TCP;
     return sub;
 }
 
-struct subuff* alloc_tcp_payload(size_t payload){
-    struct subuff *sub = alloc_sub(MIN_ALLOCATED_TCP_SUB + payload);
-    sub_reserve(sub, MIN_ALLOCATED_TCP_SUB + payload);
+struct subuff *alloc_tcp_payload(size_t payload){
+    struct subuff *sub = alloc_sub(TCP_HDR_LEN + IP_HDR_LEN + ETH_HDR_LEN + payload);
+    sub_reserve(sub, TCP_HDR_LEN + IP_HDR_LEN + ETH_HDR_LEN + payload);
     sub->protocol = IPP_TCP;
     return sub;
 }

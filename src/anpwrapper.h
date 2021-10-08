@@ -37,6 +37,7 @@ struct anp_socket_entry {
 
   uint32_t dest_addr;
   uint16_t dest_port;
+
   uint32_t src_addr;
   uint16_t src_port;
 
