@@ -244,7 +244,7 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
         send_hdr->window = htons(TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
 
         send_hdr->checksum = 0; // zeroing checksum before recalculating
-        send_hdr->checksum = do_tcp_csum((uint8_t *)send_hdr, TCP_HDR_LEN + len, IPP_TCP, sock_entry->src_addr, sock_entry->dest_addr) - htons(256);
+        send_hdr->checksum = do_tcp_csum((uint8_t *)send_hdr, TCP_HDR_LEN + len, IPP_TCP, sock_entry->src_addr, sock_entry->dest_addr);
 
         u32_ip_to_str("Sending payload to: \n", ntohl(sock_entry->dest_addr));
 
