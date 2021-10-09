@@ -124,25 +124,26 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
         syn_hdr = create_syn(syn_hdr, addr); // prepare the TCP SYN packet
 
         uint32_t src_addr = ip_str_to_n32(ANP_IP_CLIENT_EXT);
-        uint32_t dest_addr = htonl((((struct sockaddr_in *) addr)->sin_addr).s_addr);
+        uint32_t dst_addr = htonl((((struct sockaddr_in *) addr)->sin_addr).s_addr);
 
         // store allocated subuff for deallocation and comparison
         sock_entry->tcp_state.tx_sub = syn_sub;
         sock_entry->tcp_state.state = SYN_SENT;
         sock_entry->src_port = syn_hdr->src_port;
-        sock_entry->dest_port = syn_hdr->dst_port;
+        sock_entry->dst_port = syn_hdr->dst_port;
+        sock_entry->seq_num = syn_hdr->seq_num;
         sock_entry->src_addr = src_addr;
-        sock_entry->dest_addr = ip_str_to_n32(inet_ntoa(((struct sockaddr_in *) addr)->sin_addr));
+        sock_entry->dst_addr = ip_str_to_n32(inet_ntoa(((struct sockaddr_in *) addr)->sin_addr));
 
         debug_tcp_hdr("SYN out", syn_hdr);
 
-        int err = tcp_output(dest_addr, syn_sub);
+        int err = tcp_output(dst_addr, syn_sub);
         if (err < 0)
             return err;
 
         printf("Waiting on SYN-ACK......\n");
 
-        pthread_mutex_unlock(&sock_entry->tcp_state_mut);
+        pthread_mutex_unlock(&sock_entry->tcp_state_mut); // release the lock
 
         // wait on SYN-ACK
         pthread_mutex_lock(&sock_entry->tcp_state.sig_mut);
@@ -171,8 +172,8 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 
         // Preparing TCP ACK packet
         ack_hdr->src_port = sock_entry->src_port;
-        ack_hdr->dst_port = sock_entry->dest_port;
-        ack_hdr->seq_num = htonl(SIMPLE_ISN + 1);
+        ack_hdr->dst_port = sock_entry->dst_port;
+        ack_hdr->seq_num = sock_entry->seq_num + htonl(1);
         ack_hdr->ack_num = htonl(ntohl(rx_hdr->seq_num) + 1);
         ack_hdr->data_offset = 8; // header contains 8 x 32 bits
         ack_hdr->ack = 1;
@@ -180,12 +181,12 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 
         ack_hdr->checksum = 0;  // zeroing checksum before recalculating
         ack_hdr->checksum = do_tcp_csum((uint8_t *) ack_hdr, TCP_HDR_LEN, IPP_TCP, sock_entry->src_addr,
-                                        sock_entry->dest_addr);
+                                        sock_entry->dst_addr);
 
         printf("Sending ACK......\n");
         debug_tcp_hdr("ACK out", ack_hdr);
 
-        err = ip_output(dest_addr, ack_sub);
+        err = ip_output(dst_addr, ack_sub);
         if (err < 0) {
             printf("\nGetting err: %d, errno: %d \n", err, errno);
             return err;
@@ -193,7 +194,8 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 
         sock_entry->tcp_state.state = ESTABLISHED; // Three-way handshake complete, the connection is now ESTABLISHED
         sock_entry->tcp_state.sequence_num = ack_hdr->seq_num;
-        pthread_mutex_unlock(&sock_entry->tcp_state_mut);
+        sock_entry->seq_num = ack_hdr->seq_num; // update the last sequence number for future use
+        pthread_mutex_unlock(&sock_entry->tcp_state_mut); // release the lock
 
         return 0;
     }
@@ -235,7 +237,7 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags) {
 
         // Preparing the packet
         send_hdr->src_port = sock_entry->src_port;
-        send_hdr->dst_port = sock_entry->dest_port;
+        send_hdr->dst_port = sock_entry->dst_port;
         send_hdr->seq_num = htonl(SIMPLE_ISN + 1);
         send_hdr->ack_num = htonl(ntohl(rx_hdr->seq_num) + 1);
         send_hdr->data_offset = 8; // header contains 8 x 32 bits
@@ -246,10 +248,10 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags) {
 
         send_hdr->checksum = 0; // zeroing checksum before recalculating
         send_hdr->checksum = do_tcp_csum((uint8_t *) send_hdr, TCP_HDR_LEN + len, IPP_TCP, sock_entry->src_addr,
-                                         sock_entry->dest_addr) -
+                                         sock_entry->dst_addr) -
                              htons(256);
 
-        int err = tcp_output(ntohl(sock_entry->dest_addr), send_sub);
+        int err = tcp_output(ntohl(sock_entry->dst_addr), send_sub);
         if (err < 0) {
             return err;
         }
@@ -352,7 +354,7 @@ int close(int sockfd) {
         struct tcphdr *close_hdr = (struct tcphdr *) sub_push(close_sub, 20);
 
         close_hdr->src_port = sock_entry->src_port;
-        close_hdr->dst_port = sock_entry->dest_port;
+        close_hdr->dst_port = sock_entry->dst_port;
         close_hdr->seq_num = htonl(SIMPLE_ISN + 1);
         close_hdr->ack_num = htonl(1);
         close_hdr->data_offset = 8; // header contains 5 x 32 bits
@@ -362,9 +364,9 @@ int close(int sockfd) {
 
         close_hdr->checksum = 0;
         close_hdr->checksum = do_tcp_csum((uint8_t *) close_hdr, TCP_HDR_LEN, IPP_TCP, sock_entry->src_addr,
-                                          sock_entry->dest_addr);
+                                          sock_entry->dst_addr);
 
-        int err = tcp_output(ntohl(sock_entry->dest_addr), close_sub);
+        int err = tcp_output(ntohl(sock_entry->dst_addr), close_sub);
         if (err < 0)
             return err;
 
@@ -396,7 +398,7 @@ int close(int sockfd) {
 
         // Preparing TCP ACK packet
         ack_hdr->src_port = sock_entry->src_port;
-        ack_hdr->dst_port = sock_entry->dest_port;
+        ack_hdr->dst_port = sock_entry->dst_port;
         ack_hdr->seq_num = htonl(SIMPLE_ISN + 1);
         ack_hdr->ack_num = htonl(ntohl(rx_hdr->seq_num) + 1);
         ack_hdr->data_offset = 8; // header contains 5 x 32 bits
@@ -405,12 +407,12 @@ int close(int sockfd) {
                 TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
 
         ack_hdr->checksum = 0;  // zeroing checksum before recalculating
-        ack_hdr->checksum = do_tcp_csum((uint8_t *) ack_hdr, TCP_HDR_LEN, IPP_TCP, sock_entry->src_addr, sock_entry->dest_addr);
+        ack_hdr->checksum = do_tcp_csum((uint8_t *) ack_hdr, TCP_HDR_LEN, IPP_TCP, sock_entry->src_addr, sock_entry->dst_addr);
 
         printf("Sending ACK..\n");
         debug_tcp_hdr("ACK out \n", ack_hdr);
 
-        err = ip_output(ntohl(sock_entry->dest_addr), ack_sub);
+        err = ip_output(ntohl(sock_entry->dst_addr), ack_sub);
         if (err < 0) {
             printf("Getting err: %d, errno: %d \n", err, errno);
             return err;

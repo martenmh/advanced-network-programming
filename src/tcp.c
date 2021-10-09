@@ -55,7 +55,7 @@ int tcp_rx(struct subuff *sub) {
                     async_printf("Validating checksum..... \n");
 
                     // validate checksum of the incoming packet
-                    int err = validate_csum(hdr, entry->src_addr, entry->dest_addr);
+                    int err = validate_csum(hdr, entry->src_addr, entry->dst_addr);
                     if (err != 0) {
                         async_printf("\nChecksum of incoming TCP response is incorrect, dropping segment \n");
                         return err;
@@ -163,24 +163,24 @@ struct tcphdr *create_syn(struct tcphdr *hdr, const struct sockaddr *addr) {
     hdr->syn = 1;
     hdr->window = htons(TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
 
-    uint32_t dest_addr = ip_str_to_n32(inet_ntoa(((struct sockaddr_in *) addr)->sin_addr));
+    uint32_t dst_addr = ip_str_to_n32(inet_ntoa(((struct sockaddr_in *) addr)->sin_addr));
     uint32_t src_addr = ip_str_to_n32(ANP_IP_CLIENT_EXT);
 
     hdr->checksum = 0;  // zeroing checksum before recalculating
-    hdr->checksum = do_tcp_csum((uint8_t *) hdr, TCP_HDR_LEN, IPP_TCP, src_addr, dest_addr);
+    hdr->checksum = do_tcp_csum((uint8_t *) hdr, TCP_HDR_LEN, IPP_TCP, src_addr, dst_addr);
 
     return hdr;
 }
 
 /**
  * Wrapper around ip_output with additional error checking and redoing method
- * @param dest_addr
+ * @param dst_addr
  * @param sub
  * @return
  */
 
-int tcp_output(uint32_t dest_addr, struct subuff *sub) {
-    int err = ip_output(dest_addr, sub);
+int tcp_output(uint32_t dst_addr, struct subuff *sub) {
+    int err = ip_output(dst_addr, sub);
 
     if (err == -EAGAIN) {
         try_again(5, 1, err == -EAGAIN, {
@@ -189,7 +189,7 @@ int tcp_output(uint32_t dest_addr, struct subuff *sub) {
             sub_pop(sub, IP_HDR_LEN);
             struct iphdr *ip = IP_HDR_FROM_SUB(sub);
             printf("\nFailed to find the address in ARP cache, trying again...... (%d/5)\n", i);
-            err = ip_output(dest_addr, sub);
+            err = ip_output(dst_addr, sub);
         });
     }
     // if err is something different from -EAGAIN or is still -EAGAIN after n tries:

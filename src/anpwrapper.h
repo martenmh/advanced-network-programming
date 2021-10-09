@@ -25,23 +25,18 @@
 
 #define MIN_SOCKFD 1000000
 
-
 struct anp_socket_entry {
     struct list_head list;
-
-    pthread_mutex_t tcp_state_mut;
     struct tcp_sock_state tcp_state;
-
     int sockfd;
 
-    uint32_t dest_addr;
-    uint16_t dest_port;
+    pthread_mutex_t tcp_state_mut;
 
+    uint32_t dst_addr;
     uint32_t src_addr;
     uint16_t src_port;
-
-    //struct recv_packet_entry recv_packets;
-
+    uint16_t dst_port;
+    uint32_t seq_num; // used to save the last seq number of the sender
 };
 
 /**
