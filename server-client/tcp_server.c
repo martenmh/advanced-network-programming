@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
     server_addr.sin_family = AF_INET;
     //XXX: get_addr overwrites the whole structure, so only set the port after calling this function
     if (argc == 3) {
-        printf("setting up the IP: %s and port %d (both) \n", argv[1], atoi(argv[2]));
+        printf("Setting up the IP: %s and port %d (both) \n", argv[1], atoi(argv[2]));
         ret = get_addr(argv[1], (struct sockaddr *) &server_addr);
         if (ret) {
             printf("Invalid IP %s \n", argv[1]);
@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
         }
         server_addr.sin_port = htons(strtol(argv[2], NULL, 0));
     } else if (argc == 2) {
-        printf("setting up the IP: %s and port %d (only IP) \n", argv[1], PORT);
+        printf("Setting up the IP: %s and port %d (only IP) \n", argv[1], PORT);
         ret = get_addr(argv[1], (struct sockaddr *) &server_addr);
         if (ret) {
             printf("Invalid IP %s \n", argv[1]);
@@ -116,8 +116,8 @@ int main(int argc, char **argv) {
     printf("OK: buffer received ok, pattern match : %s  \n", match_pattern(test_buffer, TEST_BUF_SIZE));
     // then tx it back as it is
 
-    write_pattern(test_buffer, TEST_BUF_SIZE);
-    wireshark_print(test_buffer, TEST_BUF_SIZE);
+//    write_pattern(test_buffer, TEST_BUF_SIZE);
+//    wireshark_print(test_buffer, TEST_BUF_SIZE);
     so_far = 0;
     while (so_far < TEST_BUF_SIZE) {
         ret = send(client_fd, test_buffer + so_far, TEST_BUF_SIZE - so_far, 0);

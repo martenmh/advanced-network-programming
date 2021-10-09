@@ -175,7 +175,7 @@ OK: shutdown was fine. Good bye!
 ```bash
 $./build/anp_server 192.168.56.1 4096 
 Socket successfully created, fd = 3 
-setting up the IP: 127.0.0.2 and port 4096 (both) 
+Setting up the IP: 127.0.0.2 and port 4096 (both) 
 OK: going to bind at 127.0.0.2 
 Socket successfully binded
 Server listening.
@@ -191,7 +191,7 @@ OK: server and client sockets closed
 $./build/anp_client 192.168.56.1 4096
  usage: ./anp_client ip [default: 127.0.0.1] port [default: 43211]
  OK: socket created, fd is 3 
- setting up the IP: 127.0.0.2 and port 4096 
+ Setting up the IP: 127.0.0.2 and port 4096 
  OK: connected to the server at 127.0.0.2 
           [send loop] 4096 bytes, looping again, so_far 4096 target 4096 
  OK: buffer sent successfully 

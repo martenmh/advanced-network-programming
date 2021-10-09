@@ -53,11 +53,11 @@ int main(int argc, char** argv)
     // assign IP, PORT
     server_addr.sin_family = AF_INET;
     if(argc == 3){
-        printf("setting up the IP: %s and port %d \n", argv[1], atoi(argv[2]));
+        printf("Setting up the IP: %s and port %d \n", argv[1], atoi(argv[2]));
         active_ip = argv[1];
         active_port = atoi(argv[2]);
     } else if (argc == 2){
-        printf("setting up the IP: %s and port %d \n", argv[1], PORT);
+        printf("Setting up the IP: %s and port %d \n", argv[1], PORT);
         active_ip = argv[1];
         active_port = PORT;
     } else {
@@ -79,7 +79,7 @@ int main(int argc, char** argv)
         return errno;
     }
     inet_ntop( AF_INET, &server_addr.sin_addr, debug_buffer, sizeof(debug_buffer));
-    printf("OK: connected to the server at %s \n", debug_buffer);
+    printf("\nOK: successfully connected to the server at %s \n", debug_buffer);
 
     // write a pattern
     write_pattern(tx_buffer, TEST_BUF_SIZE);
@@ -93,12 +93,10 @@ int main(int argc, char** argv)
             return -ret;
         }
         so_far+=ret;
-        printf("\t [send loop] %d bytes, looping again, so_far %d target %d \n", ret, so_far, TEST_BUF_SIZE);
+        printf("\n\t [send loop] %d bytes, looping again, so_far %d target %d \n", ret, so_far, TEST_BUF_SIZE);
     }
 
-    printf("\n\nWaiting to receive data -----------------------------------------------\n\n");
-    //printf("OK: buffer sent successfully \n");
-    printf("OK: waiting to receive data \n");
+    printf("\nOK: waiting to receive data......\n");
     // receive test buffer
     so_far = 0;
     while (so_far < TEST_BUF_SIZE) {
@@ -111,7 +109,7 @@ int main(int argc, char** argv)
         printf("\t [receive loop] %d bytes, looping again, so_far %d target %d \n", ret, so_far, TEST_BUF_SIZE);
     }
 
-    wireshark_print(rx_buffer, TEST_BUF_SIZE);
+//    wireshark_print(rx_buffer, TEST_BUF_SIZE);
     printf("Results of pattern matching: %s \n", match_pattern(rx_buffer, TEST_BUF_SIZE));
     // close the socket
     // now we sleep a bit to drain the queues and then trigger the close logic

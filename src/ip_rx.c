@@ -61,9 +61,8 @@ int ip_rx(struct subuff *sub)
             icmp_rx(sub);
             return 0;
         case IPP_TCP:
-            debug_ip_hdr("in", ih);
+            // debug_ip_hdr("in", ih);
             debug_tcp_hdr("in", (TCP_HDR_FROM_SUB(sub)));
-            printf("incoming TCP packet, further logic NYI \n");
             tcp_rx(sub);
             return 0;
         default:
