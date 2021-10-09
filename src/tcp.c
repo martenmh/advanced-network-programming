@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "tcp.h"
 #include "anpwrapper.h"
 #include "utilities.h"
@@ -194,7 +195,7 @@ int tcp_output(uint32_t dest_addr, struct subuff *sub) {
             err = ip_output(dest_addr, sub);
         });
     }
-    // if err is something different than -EAGAIN or is still -EAGAIN after n tries:
+    // if err is something different from -EAGAIN or is still -EAGAIN after n tries:
     if (err < 0) {
         async_printf("ip_output returned error: %d\n", err);
         return -1;

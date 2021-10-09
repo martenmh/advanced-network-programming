@@ -25,10 +25,9 @@
 #define debug_tcp_hdr(msg, hdr)                                                \
   printf("TCP (HDR) "msg" (src_port: %hu, dst_port: %u, seq_num: %u, ack_num: %u, data_offset %hhu, \
         reserved: %hhu, [urg: %hhu, ack: %hhu, psh: %hhu, rst: %hhu, syn: %hhu, fin: %hu], window: %hu, csum: 0x%04x, urg_ptr: %hu\n", \
-                 hdr->src_port, hdr->dst_port, hdr->seq_num, hdr->ack_num, hdr->data_offset, hdr->reserved, hdr->urg, hdr->ack, hdr->psh, hdr->rst, hdr->syn, hdr->fin, \
-                 hdr->window, hdr->checksum, hdr->urgent_ptr  \
-                 )
-
+        hdr->src_port, hdr->dst_port, hdr->seq_num, hdr->ack_num, hdr->data_offset, hdr->reserved, hdr->urg, hdr->ack, hdr->psh, hdr->rst, hdr->syn, hdr->fin, \
+        hdr->window, hdr->checksum, hdr->urgent_ptr  \
+        )
 
 // TCP states used in the state machine
 enum TCP_STATE {
@@ -85,7 +84,6 @@ struct tcphdr {
     uint8_t data[];
 } __attribute__((packed));
 
-
 // TCP state machine structure
 struct tcp_sock_state {
     // signalling 1
@@ -105,10 +103,6 @@ struct tcp_sock_state {
     volatile uint32_t sequence_num;
 };
 
-extern struct list_head recv_packets;
-extern uint32_t recv_packets_size;
-extern pthread_mutex_t recv_packets_mut;
-
 struct recv_packet_entry {
     struct list_head list;
     // identification
@@ -119,47 +113,38 @@ struct recv_packet_entry {
     void *buffer;
 };
 
-struct variable_options {
-    uint8_t kind;
-    uint8_t length;
-    uint8_t data[];
-} __attribute__((packed));
 
-union tcp_options {
-    uint8_t option_kind;
-    struct variable_options options;
-} __attribute__((packed));
+extern struct list_head recv_packets;
+extern uint32_t recv_packets_size;
+extern pthread_mutex_t recv_packets_mut;
 
-struct subuff *alloc_tcp_sub();
 
-struct subuff *alloc_tcp_payload(size_t payload);
-
-int tcp_rx(struct subuff *sub);
-
+// useful functions
 bool tcp_headers_related(struct tcphdr *tx_hdr, struct tcphdr *rx_hdr);
-
+struct subuff *alloc_tcp_sub();
+struct subuff *alloc_tcp_payload(size_t payload);
 struct tcphdr *create_syn(struct tcphdr *hdr, const struct sockaddr *addr);
-
+int tcp_rx(struct subuff *sub);
 int tcp_output(uint32_t dst_addr, struct subuff *sub);
-
 int validate_tcphdr(struct tcphdr *hdr, uint32_t src_addr, uint32_t dst_addr);
-
 uint8_t *sub_pop(struct subuff *sub, unsigned int len);
 
-#define TCP_HDR_LEN 32
+
+// useful macros and constants
+#define TCP_HDR_FROM_SUB(_sub) (struct tcphdr *)(_sub->head + IP_HDR_LEN + ETH_HDR_LEN)
 #define TCP_PADDED_HDR_LEN(_sub) ((TCP_HDR_FROM_SUB(_sub))->data_offset * 4)
 #define TCP_PAYLOAD_LEN(_sub) ((IP_PAYLOAD_LEN((IP_HDR_FROM_SUB(_sub)))) - (TCP_PADDED_HDR_LEN(_sub)))
 #define TCP_PAYLOAD_FROM_SUB(_sub) ((void *)(_sub->head + IP_HDR_LEN + ETH_HDR_LEN + ((TCP_HDR_FROM_SUB(_sub))->data_offset) * 4))
-#define TCP_HDR_FROM_SUB(_sub) (struct tcphdr *)(_sub->head + IP_HDR_LEN + ETH_HDR_LEN)
+#define TCP_HDR_LEN 32 // TCP header length for 8 bit words long header
+#define TCP_MAX_WINDOW 65495 // max possible window size of a TCP packet
 
-#define TCP_MAX_WINDOW 65495
+#define MIN_ALLOCATED_TCP_SUB 66 // minimum subuff size for a TCP packet with an 8 bit words long header
+#define MIN_PADDED_TCP_LEN (MIN_ALLOCATED_TCP_SUB - ( IP_HDR_LEN + ETH_HDR_LEN))
 
 // Initial Sequence Number (ISN)
-#define SIMPLE_ISN  0xC0FFEE  //  unsafe but arbitrary in this case
-#define MIN_PADDED_TCP_LEN (MIN_ALLOCATED_TCP_SUB - ( IP_HDR_LEN + ETH_HDR_LEN))
-#define MIN_ALLOCATED_TCP_SUB 66
-#define TCP_CONNECT_TIMEOUT 10000 // 10 sec
+#define SIMPLE_ISN  0xC0FFEE  // unsafe but arbitrary in this case
 #define TCP_SEQ_START 1024  // really trivial but useful for debugging
+#define TCP_CONNECT_TIMEOUT 10000 // 10 sec
 
 
 #endif // ANPNETSTACK_TCP_H

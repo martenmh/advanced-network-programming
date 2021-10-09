@@ -23,7 +23,6 @@
 #include "ip.h"
 #include "linklist.h"
 #include "systems_headers.h"
-#include "timer.h"
 #include <dlfcn.h>
 
 LIST_HEAD(sockets);
