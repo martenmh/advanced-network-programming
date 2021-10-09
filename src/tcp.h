@@ -14,14 +14,13 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#include "ip.h"
-#include "subuff.h"
-
-#include <endian.h>
 
 #ifndef ANPNETSTACK_TCP_H
 #define ANPNETSTACK_TCP_H
 
+#include "ip.h"
+#include "subuff.h"
+#include <endian.h>
 
 #define debug_tcp_hdr(msg, hdr)                                                \
   printf("TCP (HDR) "msg" (src_port: %hu, dst_port: %u, seq_num: %u, ack_num: %u, data_offset %hhu, \
@@ -31,25 +30,79 @@
                  )
 
 
-// Bit Flags
-enum state_flag {
-  NS = 1 << 9,
-  CWR = 1 << 8
-  //
+// TCP states used in the state machine
+enum TCP_STATE {
+    LISTEN, // not implemented
+    SYN_SENT,
+    SYN_RECEIVED,
+    ESTABLISHED,
+    FIN_WAIT_1,
+    FIN_WAIT_2,
+    CLOSE_WAIT,
+    CLOSING,
+    LAST_ACK,
+    TIME_WAIT,
+    CLOSED
 };
 
-enum TCP_STATE {
-  LISTEN, // not implemented
-  SYN_SENT,
-  SYN_RECEIVED,
-  ESTABLISHED,
-  FIN_WAIT_1,
-  FIN_WAIT_2,
-  CLOSE_WAIT,
-  CLOSING,
-  LAST_ACK,
-  TIME_WAIT,
-  CLOSED
+// TCP header structure
+struct tcphdr {
+    uint16_t src_port;
+    uint16_t dst_port;
+    uint32_t seq_num;
+    uint32_t ack_num;
+
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+    uint8_t reserved: 4;
+    uint8_t data_offset: 4;  // header length in bit words
+#elif __BYTE_ORDER == __BIG_ENDIAN
+    uint8_t data_offset : 4;  // header length in bit words
+    uint8_t reserved : 4;
+#endif
+
+    // "Inspired" by linux's tcphdr
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+    uint8_t fin: 1;
+    uint8_t syn: 1;
+    uint8_t rst: 1;
+    uint8_t psh: 1;
+    uint8_t ack: 1;
+    uint8_t urg: 1;
+    uint8_t ece: 1;
+    uint8_t cwr: 1;
+#elif __BYTE_ORDER == __BIG_ENDIAN
+    uint8_t fin : 1;
+    uint8_t syn : 1;
+    uint8_t rst : 1;
+    uint8_t psh : 1;
+    uint8_t ack : 1;
+    uint8_t urg : 1;
+#endif
+
+    uint16_t window;
+    uint16_t checksum;
+    uint16_t urgent_ptr;
+    uint8_t data[];
+} __attribute__((packed));
+
+
+// TCP state machine structure
+struct tcp_sock_state {
+    // signalling 1
+    pthread_mutex_t sig_mut;
+    pthread_cond_t sig_cond;
+    volatile bool condition;
+    // signalling 2
+    pthread_mutex_t sig_mut2;
+    pthread_cond_t sig_cond2;
+    volatile bool condition2;
+
+    // state information
+    volatile enum TCP_STATE state; // current state in TCP state machine
+    volatile struct subuff *tx_sub;
+    volatile struct subuff *rx_sub;
+
+    volatile uint32_t sequence_num;
 };
 
 extern struct list_head recv_packets;
@@ -57,98 +110,41 @@ extern uint32_t recv_packets_size;
 extern pthread_mutex_t recv_packets_mut;
 
 struct recv_packet_entry {
-  struct list_head list;
-  // identification
-  uint32_t rx_seq_num;
-  int sockfd;
-  // buffer
-  size_t length;
-  void* buffer;
+    struct list_head list;
+    // identification
+    uint32_t rx_seq_num;
+    int sockfd;
+    // buffer
+    size_t length;
+    void *buffer;
 };
 
-struct tcphdr {
-  uint16_t src_port;
-  uint16_t dst_port;
-  uint32_t seq_num;
-  uint32_t ack_num;
-
-  #if __BYTE_ORDER == __LITTLE_ENDIAN
-  uint8_t reserved : 4;
-  uint8_t data_offset : 4;  // header length
-  #elif __BYTE_ORDER == __BIG_ENDIAN
-  uint8_t data_offset : 4;  // header length
-  uint8_t reserved : 4;
-  #endif
-
-  // "Inspired" by linux's tcphdr
-  #if __BYTE_ORDER == __LITTLE_ENDIAN
-  uint8_t fin : 1;
-  uint8_t syn : 1;
-  uint8_t rst : 1;
-  uint8_t psh : 1;
-  uint8_t ack : 1;
-  uint8_t urg : 1;
-  uint8_t ece : 1;
-  uint8_t cwr : 1;
-  #elif __BYTE_ORDER == __BIG_ENDIAN
-  uint8_t fin : 1;
-  uint8_t syn : 1;
-  uint8_t rst : 1;
-  uint8_t psh : 1;
-  uint8_t ack : 1;
-  uint8_t urg : 1;
-  #endif
-
-  uint16_t window;
-  uint16_t checksum;
-  uint16_t urgent_ptr;
-  uint8_t data[];
-} __attribute__((packed));
-
 struct variable_options {
-  uint8_t kind;
-  uint8_t length;
-  uint8_t data[];
+    uint8_t kind;
+    uint8_t length;
+    uint8_t data[];
 } __attribute__((packed));
 
-union tcp_options{
-  uint8_t option_kind;
-  struct variable_options options;
+union tcp_options {
+    uint8_t option_kind;
+    struct variable_options options;
 } __attribute__((packed));
 
 struct subuff *alloc_tcp_sub();
+
 struct subuff *alloc_tcp_payload(size_t payload);
 
-struct tcp_sock_state {
-  // signalling 1
-  pthread_mutex_t sig_mut;
-  pthread_cond_t sig_cond;
-  volatile bool condition;
-  // singalling 2
-  pthread_mutex_t sig_mut2;
-  pthread_cond_t sig_cond2;
-  volatile bool condition2;
-
-  // state information
-  volatile enum TCP_STATE state; // current state in TCP state machine
-  //struct tcphdr prev_hdr;
-  volatile struct subuff* tx_sub;
-  volatile struct subuff* rx_sub;
-
-  volatile uint32_t sequence_num;
-};
-
 int tcp_rx(struct subuff *sub);
-bool tcp_headers_related(struct tcphdr* tx_hdr, struct tcphdr* rx_hdr);
-struct tcphdr *create_syn(struct tcphdr* hdr, const struct sockaddr* addr);
 
-//void tcp_acknowledge(){
-//
-//}
-int tcp_output(uint32_t dst_addr, struct subuff* sub);
-int validate_tcphdr(struct tcphdr* hdr, uint32_t src_addr, uint32_t dst_addr);
+bool tcp_headers_related(struct tcphdr *tx_hdr, struct tcphdr *rx_hdr);
+
+struct tcphdr *create_syn(struct tcphdr *hdr, const struct sockaddr *addr);
+
+int tcp_output(uint32_t dst_addr, struct subuff *sub);
+
+int validate_tcphdr(struct tcphdr *hdr, uint32_t src_addr, uint32_t dst_addr);
+
 uint8_t *sub_pop(struct subuff *sub, unsigned int len);
-void tcp_csum(struct tcphdr* out_hdr, const struct sockaddr* addr);
 
 #define TCP_HDR_LEN 32
 #define TCP_PADDED_HDR_LEN(_sub) ((TCP_HDR_FROM_SUB(_sub))->data_offset * 4)
@@ -164,4 +160,6 @@ void tcp_csum(struct tcphdr* out_hdr, const struct sockaddr* addr);
 #define MIN_ALLOCATED_TCP_SUB 66
 #define TCP_CONNECT_TIMEOUT 10000 // 10 sec
 #define TCP_SEQ_START 1024  // really trivial but useful for debugging
+
+
 #endif // ANPNETSTACK_TCP_H

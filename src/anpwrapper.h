@@ -26,22 +26,21 @@
 #define MIN_SOCKFD 1000000
 
 
-
 struct anp_socket_entry {
-  struct list_head list;
+    struct list_head list;
 
-  pthread_mutex_t tcp_state_mut;
-  struct tcp_sock_state tcp_state;
+    pthread_mutex_t tcp_state_mut;
+    struct tcp_sock_state tcp_state;
 
-  int sockfd;
+    int sockfd;
 
-  uint32_t dest_addr;
-  uint16_t dest_port;
+    uint32_t dest_addr;
+    uint16_t dest_port;
 
-  uint32_t src_addr;
-  uint16_t src_port;
+    uint32_t src_addr;
+    uint16_t src_port;
 
-  //struct recv_packet_entry recv_packets;
+    //struct recv_packet_entry recv_packets;
 
 };
 
@@ -50,7 +49,7 @@ struct anp_socket_entry {
  * @param socket_entry
  * @return
  */
-struct tcp_sock_state* get_tcp_state(struct anp_socket_entry* socket_entry);
+struct tcp_sock_state *get_tcp_state(struct anp_socket_entry *socket_entry);
 
 // shared between thread, defined in .c
 // TODO: add a mutex & encapsulate in a struct
@@ -63,7 +62,7 @@ void _function_override_init();
 // Abusing macro's a bit to function like lambdas
 #define try_again(max_tries, secdelay, cond, func)   \
   do{                                                \
-      for(int i = 1; cond && i <= max_tries; i++){   \
+      for(int i = 1; (cond) && i <= (max_tries); i++){   \
         func;                                        \
         sleep(secdelay);                             \
       }                                              \
