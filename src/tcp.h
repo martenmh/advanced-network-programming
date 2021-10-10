@@ -31,8 +31,8 @@
 
 // TCP states used in the state machine, not all states are currently implemented
 enum TCP_STATE {
-    LISTEN,
-    SYN_SENT,
+    LISTEN    = 0,
+    SYN_SENT  = 1,
     SYN_RECEIVED,
     ESTABLISHED,
     FIN_WAIT_1,
@@ -95,6 +95,7 @@ struct tcp_sock_state {
     volatile enum TCP_STATE state; // current state in TCP state machine
     volatile struct subuff *tx_sub;
     volatile struct subuff *rx_sub;
+    volatile bool failed;
 };
 
 struct recv_packet_entry {
@@ -110,7 +111,7 @@ struct recv_packet_entry {
 
 extern struct list_head recv_packets;
 extern uint32_t recv_packets_size;
-extern pthread_mutex_t recv_packets_mut;
+pthread_mutex_t recv_packets_mut;
 
 
 // useful functions

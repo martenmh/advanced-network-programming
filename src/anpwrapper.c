@@ -94,6 +94,17 @@ int socket(int domain, int type, int protocol) {
     return _socket(domain, type, protocol);
 }
 
+void await_tcp_response(struct anp_socket_entry* sock_entry){
+  // wait on SYN-ACK
+  pthread_mutex_lock(&sock_entry->tcp_state.sig_mut);
+  while (!sock_entry->tcp_state.condition) {
+    // wait on SYN-ACK, see ip_rx.c for receiving end.
+    pthread_cond_wait(&sock_entry->tcp_state.sig_cond,
+                      &sock_entry->tcp_state.sig_mut);
+  }
+  pthread_mutex_unlock(&sock_entry->tcp_state.sig_mut);
+}
+
 int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
     if (addr->sa_family != AF_INET) {
         printf("\nDropping connection: Unsupported sa_family!!!\n");
@@ -105,58 +116,73 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
     if (is_anp_sockfd) {
         printf("\nEstablishing connection......\n");
         struct anp_socket_entry *sock_entry = get_socket(sockfd);
-        pthread_mutex_lock(&sock_entry->tcp_state_mut); // acquire the lock on thread
 
         if (sock_entry->tcp_state.state != CLOSED) {
             printf("\nAborting connection: Expected CLOSED socket for connect!!!\n");
             return -1;
         }
-        // SYN PACKET
-        struct subuff *syn_sub = alloc_tcp_sub();
-        if (!syn_sub) {
-            printf("\nError: allocation of the TCP tx_sub failed!!!\n");
-            return -1;
-        }
-
-        struct tcphdr *syn_hdr = (struct tcphdr *) sub_push(syn_sub, TCP_HDR_LEN);
-        syn_hdr = create_syn(syn_hdr, addr); // prepare the TCP SYN packet, defined in tcp.c
 
         uint32_t src_addr = ip_str_to_n32(ANP_IP_CLIENT_EXT);
-        uint32_t dst_addr = htonl((((struct sockaddr_in *) addr)->sin_addr).s_addr);
-        // store allocated subuff for deallocation and comparison
-        sock_entry->tcp_state.tx_sub = syn_sub;
-        sock_entry->tcp_state.state = SYN_SENT;
-        sock_entry->src_port = syn_hdr->src_port;
-        sock_entry->dst_port = syn_hdr->dst_port;
-        sock_entry->seq_num = syn_hdr->seq_num;
-        sock_entry->src_addr = src_addr;
-        sock_entry->dst_addr = ip_str_to_n32(inet_ntoa(((struct sockaddr_in *) addr)->sin_addr));
+        uint32_t dst_addr =htonl((((struct sockaddr_in *)addr)->sin_addr).s_addr);
 
-        int err = tcp_output(dst_addr, syn_sub);
-        if (err < 0)
+        // SYN PACKET
+        bool failed = false;
+        pthread_mutex_lock(&sock_entry->tcp_state_mut); // release the lock
+        do {
+          struct subuff *syn_sub = alloc_tcp_sub();
+          if (!syn_sub) {
+            printf("\nError: allocation of the TCP tx_sub failed!!!\n");
+            return -1;
+          }
+
+          struct tcphdr *syn_hdr =
+              (struct tcphdr *)sub_push(syn_sub, TCP_HDR_LEN);
+          syn_hdr = create_syn(
+              syn_hdr, addr); // prepare the TCP SYN packet, defined in tcp.c
+
+
+          // store allocated subuff for deallocation and comparison
+          sock_entry->tcp_state.tx_sub = syn_sub;
+          sock_entry->tcp_state.state = SYN_SENT;
+          sock_entry->src_port = syn_hdr->src_port;
+          sock_entry->dst_port = syn_hdr->dst_port;
+          sock_entry->seq_num = syn_hdr->seq_num;
+          sock_entry->src_addr = src_addr;
+          sock_entry->dst_addr =
+              ip_str_to_n32(inet_ntoa(((struct sockaddr_in *)addr)->sin_addr));
+
+          int err = tcp_output(dst_addr, syn_sub);
+          if (err < 0)
             return err;
 
-        printf("\nWaiting on SYN-ACK......\n");
+          printf("\nWaiting on SYN-ACK......\n");
 
+          pthread_mutex_unlock(&sock_entry->tcp_state_mut); // release the lock
+
+          await_tcp_response(sock_entry);
+
+          pthread_mutex_lock(&sock_entry->tcp_state_mut); // acquire the lock again after receiving SYN ACK
+          failed = sock_entry->tcp_state.failed;
+          if(failed){
+            printf("Failed to receive SYN-ACK, sending another SYN..\n");
+            sleep(1);
+          }
+        } while(failed);
         pthread_mutex_unlock(&sock_entry->tcp_state_mut); // release the lock
-        // wait on SYN-ACK
-        pthread_mutex_lock(&sock_entry->tcp_state.sig_mut);
-        while (!sock_entry->tcp_state.condition) {
-            // wait on SYN-ACK, see ip_rx.c for receiving end.
-            pthread_cond_wait(&sock_entry->tcp_state.sig_cond, &sock_entry->tcp_state.sig_mut);
-        }
-        pthread_mutex_unlock(&sock_entry->tcp_state.sig_mut);
 
-        pthread_mutex_lock(&sock_entry->tcp_state_mut); // acquire the lock again after receiving SYN ACK
+        printf("Done waiting\n");
         if (!sock_entry->tcp_state.condition) {
             return -1;
         }
+        printf("Sucessfully Done waiting\n");
         // ACK PACKET
         struct subuff *ack_sub = alloc_tcp_sub();
         if (!ack_sub) {
             printf("\nError: allocation of the TCP tx_sub failed!!!\n");
             return -1;
         }
+
+        pthread_mutex_lock(&sock_entry->tcp_state_mut);
 
         sub_push(ack_sub, TCP_HDR_LEN);
         struct tcphdr *ack_hdr = TCP_HDR_FROM_SUB(ack_sub);
@@ -176,7 +202,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 
         printf("\nSending ACK......\n");
 
-        err = ip_output(dst_addr, ack_sub);
+        int err = ip_output(dst_addr, ack_sub);
         if (err < 0) {
             printf("\nGetting err: %d, errno: %d \n", err, errno);
             return err;
@@ -271,33 +297,77 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags) {
     return _send(sockfd, buf, len, flags);
 }
 
+ssize_t acknowledge(struct anp_socket_entry* sock_entry, struct recv_packet_entry* packet_entry){
+  //if(read_len == len){
+  printf("Sending ACK\n");
+  //pthread_mutex_lock(&sock_entry->tcp_state_mut);
+
+  struct subuff *ack_sub = alloc_tcp_sub();
+  if (!ack_sub) {
+    printf("\nError: allocation of the TCP tx_sub failed \n");
+    return -1;
+  }
+
+  pthread_mutex_lock(&sock_entry->tcp_state_mut);
+
+  sub_push(ack_sub, TCP_HDR_LEN);
+  struct tcphdr *ack_hdr = TCP_HDR_FROM_SUB(ack_sub);
+
+  // Preparing TCP ACK packet
+  ack_hdr->src_port = sock_entry->src_port;
+  ack_hdr->dst_port = sock_entry->dst_port;
+  ack_hdr->seq_num = sock_entry->seq_num + htonl(1);
+  ack_hdr->ack_num = htonl(ntohl(packet_entry->rx_seq_num) + 2);
+  ack_hdr->data_offset = 8; // header contains 5 x 32 bits
+  ack_hdr->ack = 1;
+  ack_hdr->window = htons(TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
+  ack_hdr->checksum = 0;  // zeroing checksum before recalculating
+  ack_hdr->checksum = do_tcp_csum((uint8_t *) ack_hdr, TCP_HDR_LEN, IPP_TCP,
+                                  sock_entry->src_addr, sock_entry->dst_addr);
+  pthread_mutex_unlock(&sock_entry->tcp_state_mut);
+  printf("\nSending ACK......\n");
+
+  sock_entry->tcp_state.tx_sub = ack_sub;
+  sock_entry->ack_num = ack_hdr->ack_num; // ACK does not change since the server is not sending any payload
+  sock_entry->seq_num = ntohl(ack_hdr->seq_num); // add the number of sent bytes to the seq number
+  sock_entry->seq_num = htonl(sock_entry->seq_num); // convert back to network byte order
+
+  int err = ip_output(ntohl(sock_entry->dst_addr), ack_sub);
+  if (err < 0) {
+    printf("\nGetting err: %d, errno: %d \n", err, errno);
+    pthread_mutex_unlock(&sock_entry->tcp_state_mut);
+    return err;
+  }
+}
+
 ssize_t recv(int sockfd, void *buf, size_t len, int flags) {
     bool is_anp_sockfd = is_anp_socket(sockfd);
 
     if (is_anp_sockfd) {
+        printf("Receiving ANP socket\n");
         size_t read_len = 0;
         struct anp_socket_entry *sock_entry = get_socket(sockfd);
-        pthread_mutex_lock(&sock_entry->tcp_state.sig_mut);
-
+        printf("Awaiting sig_mut mutex\n");
+        //pthread_mutex_lock(&sock_entry->tcp_state.sig_mut);
+        printf("finished waiting\n");
         if (sock_entry->tcp_state.state != ESTABLISHED) {
-            printf("\nAborting receive: Expected ESTABLISHED connection to receive packages... \n");
-            return -1;
+            printf("\nAborting receive: Expected ESTABLISHED connection to receive packages... Got TCP STATE = %d \n", sock_entry->tcp_state.state);
+            return 0;
         }
 
-        while (!sock_entry->tcp_state.condition) {
-            // Wait to be signalled by an incoming TCP response from ip_rx
-            pthread_cond_wait(&sock_entry->tcp_state.sig_cond,
-                              &sock_entry->tcp_state.sig_mut);
-        }
-        pthread_mutex_unlock(&sock_entry->tcp_state.sig_mut);
+        printf("Awaiting TCP response\n");
 
-        pthread_mutex_lock(&sock_entry->tcp_state_mut);
+        await_tcp_response(sock_entry);
+        //pthread_mutex_lock(&sock_entry->tcp_state_mut);
         async_printf("Read TCP packet.\n");
         struct list_head *item;
         struct recv_packet_entry *entry;
         async_printf("reading received packets\n");
         int i = 0;
+
+        pthread_mutex_lock(&recv_packets_mut);
         list_for_each(item, &recv_packets) {
+            async_printf("Packet number %d\n", i);
             entry = list_entry(item, struct recv_packet_entry, list);
             if (entry->sockfd != sockfd)
                 continue;
@@ -310,11 +380,23 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags) {
             }
 
             memcpy(buf, entry->buffer, read_len);
+            acknowledge(sock_entry, entry);
             list_del(item);
-            goto ret;
+            break;
         }
+        pthread_mutex_unlock(&recv_packets_mut);
+
+        printf("Received %zu bytes", read_len);
+
+          //sock_entry->tcp_state.state = CLOSED; // Four-way handshake complete, the connection is now CLOSED
+          //pthread_mutex_unlock(&sock_entry->tcp_state_mut);
+        //}
+
         ret:
         pthread_mutex_unlock(&sock_entry->tcp_state_mut);
+        if(read_len == 0){
+          sleep(1);
+        }
         return read_len;
     }
     return _recv(sockfd, buf, len, flags);

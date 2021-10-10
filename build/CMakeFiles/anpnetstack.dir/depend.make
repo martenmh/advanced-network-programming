@@ -23,7 +23,6 @@ CMakeFiles/anpnetstack.dir/src/anpwrapper.c.o: ../src/linklist.h
 CMakeFiles/anpnetstack.dir/src/anpwrapper.c.o: ../src/subuff.h
 CMakeFiles/anpnetstack.dir/src/anpwrapper.c.o: ../src/systems_headers.h
 CMakeFiles/anpnetstack.dir/src/anpwrapper.c.o: ../src/tcp.h
-CMakeFiles/anpnetstack.dir/src/anpwrapper.c.o: ../src/timer.h
 CMakeFiles/anpnetstack.dir/src/anpwrapper.c.o: ../src/utilities.h
 
 CMakeFiles/anpnetstack.dir/src/arp.c.o: ../src/anp_netdev.h

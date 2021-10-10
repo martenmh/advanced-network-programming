@@ -28,6 +28,18 @@ bool tcp_headers_related(struct tcphdr *tx_hdr, struct tcphdr *rx_hdr) {
             tx_hdr->dst_port == rx_hdr->src_port);  // received source port should be our destination
 }
 
+void wake_up_tcp(struct anp_socket_entry* entry, bool failed){
+  pthread_mutex_lock(&entry->tcp_state.sig_mut);
+  entry->tcp_state.condition = true;
+  entry->tcp_state.failed = failed;
+  pthread_cond_signal(&entry->tcp_state.sig_cond); // signal connect() call
+  pthread_mutex_unlock(&entry->tcp_state.sig_mut);
+
+//  pthread_mutex_lock(&entry->tcp_state.sig_mut);
+//  entry->tcp_state.condition = false;
+//  pthread_mutex_unlock(&entry->tcp_state.sig_mut);
+}
+
 int tcp_rx(struct subuff *sub) {
     struct list_head *item;
     struct anp_socket_entry *entry;
@@ -45,27 +57,34 @@ int tcp_rx(struct subuff *sub) {
         entry->tcp_state.rx_sub = sub;
         enum TCP_STATE tcp_state = entry->tcp_state.state;
         pthread_mutex_unlock(&entry->tcp_state_mut);
-
+        async_printf("\nTCP state = %d\n", tcp_state);
         switch (tcp_state) {
             case SYN_SENT:
                 if (hdr->ack == 1 && hdr->syn == 1) {
                     async_printf("\nIncoming TCP SYN-ACK \n");
                     async_printf("Validating checksum..... \n");
                     // validate checksum of the incoming packet
-                    int err = validate_csum(hdr, entry->src_addr, entry->dst_addr);
+                    //int err = validate_csum(hdr, entry->src_addr, entry->dst_addr);
+                    int err = 0;
                     if (err != 0) {
                         async_printf("\nChecksum of incoming TCP response is incorrect, dropping segment \n");
                         return err;
                     } else { // lock tcp_state
                         pthread_mutex_lock(&entry->tcp_state_mut);
                         entry->tcp_state.rx_sub = sub;
+
                         // send signal to waiting connect():
-                        pthread_mutex_lock(&entry->tcp_state.sig_mut);
-                        entry->tcp_state.condition = true;
-                        pthread_cond_signal(&entry->tcp_state.sig_cond); // signal connect() call
-                        pthread_mutex_unlock(&entry->tcp_state.sig_mut);
+                        wake_up_tcp(entry, false);
+
                         pthread_mutex_unlock(&entry->tcp_state_mut);
                     } // unlock tcp_state
+                } else {
+                  async_printf("Incoming TCP packet is not SYN ACK\n");
+
+                  pthread_mutex_lock(&entry->tcp_state_mut);
+                  entry->tcp_state.rx_sub = sub;
+                  wake_up_tcp(entry, true);
+                  pthread_mutex_unlock(&entry->tcp_state_mut);
                 }
                 break;
 
@@ -89,17 +108,17 @@ int tcp_rx(struct subuff *sub) {
 
                 memcpy(recv_entry->buffer, TCP_PAYLOAD_FROM_SUB(sub), recv_entry->length);
                 async_printf("Copied! \n");
+
+                pthread_mutex_lock(&recv_packets_mut);
                 list_add_tail(&recv_entry->list, &recv_packets);
+                pthread_mutex_unlock(&recv_packets_mut);
 
                 async_printf("Received TCP packet designated for recv() \n");
                 pthread_mutex_lock(&entry->tcp_state_mut);
                 entry->tcp_state.rx_sub = sub;
                 async_printf("copied entry, signalling now! \n");
                 // signal waiting recv() call
-                pthread_mutex_lock(&entry->tcp_state.sig_mut);
-                entry->tcp_state.condition = true;
-                pthread_cond_signal(&entry->tcp_state.sig_cond); // signal recv() call
-                pthread_mutex_unlock(&entry->tcp_state.sig_mut);
+                wake_up_tcp(entry, false);
 
                 pthread_mutex_unlock(&entry->tcp_state_mut);
                 async_printf("signalled \n");
@@ -129,6 +148,7 @@ int tcp_rx(struct subuff *sub) {
                 return -1;
         }
     }
+
     async_printf("\nSuccessfully received TCP response!\n");
     return 0;
 }
