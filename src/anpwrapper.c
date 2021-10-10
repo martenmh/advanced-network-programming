@@ -226,18 +226,18 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags) {
         // split the packet into smaller segments to comply with the network's MSS
         if (payload > TCP_SERVER_MSS) {
             payload = TCP_SERVER_MSS;
-        } else {
+        } else { // if the payload size is smaller than MSS, then it is the final segment
             printf("Sending final packet......\n");
-            final = true;
+            final = true; // pointing out final segment is important to correctly set the PSH flag
         }
 
-        struct subuff *send_sub = alloc_tcp_payload(payload);
+        struct subuff *send_sub = alloc_tcp_payload(payload); // allocating sub with the payload size in mind
         if (!send_sub) {
             printf("Error: allocation of the TCP tx_sub failed \n");
             return -1;
         }
 
-        // Pushing data
+        // Pushing data into sub
         printf("Copied buffer of length %zu into payload \n", payload);
         uint8_t *payload_buf = sub_push(send_sub, payload);
         memcpy(payload_buf, buf, payload);
@@ -248,15 +248,15 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags) {
         // Preparing the packet
         send_hdr->src_port = sock_entry->src_port;
         send_hdr->dst_port = sock_entry->dst_port;
-        send_hdr->seq_num = sock_entry->seq_num; // seq number is the same as the previous one
-        send_hdr->ack_num = sock_entry->ack_num;
+        send_hdr->seq_num = sock_entry->seq_num;
+        send_hdr->ack_num = sock_entry->ack_num; // ACK doesn't change since server is not sending any payload
         send_hdr->data_offset = 8; // header contains 8 x 32 bits
         send_hdr->ack = 1;
-        if (final) {
+        if (final) { // only needs to be set for the final segment
             send_hdr->psh = 1;
         }
         send_hdr->window = htons(
-                TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
+                TCP_MAX_WINDOW);  // currently, set to max amount, needs to be adjusted to avoid congestion
 
         send_hdr->checksum = 0; // zeroing checksum before recalculating
         send_hdr->checksum = do_tcp_csum((uint8_t *) send_hdr, TCP_HDR_LEN + payload, IPP_TCP, sock_entry->src_addr,
@@ -284,7 +284,7 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags) {
         sock_entry->seq_num = htonl(sock_entry->seq_num); // convert back to network byte order
         sock_entry->tcp_state.sequence_num = send_hdr->seq_num;
 
-        return payload;
+        return payload; // return the length of the sent payload
     }
     // the default path
     return _send(sockfd, buf, len, flags);
