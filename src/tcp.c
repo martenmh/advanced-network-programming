@@ -35,9 +35,9 @@ void wake_up_tcp(struct anp_socket_entry* entry, bool failed){
   pthread_cond_signal(&entry->tcp_state.sig_cond); // signal connect() call
   pthread_mutex_unlock(&entry->tcp_state.sig_mut);
 
-  pthread_mutex_lock(&entry->tcp_state.sig_mut);
-  entry->tcp_state.condition = false;
-  pthread_mutex_unlock(&entry->tcp_state.sig_mut);
+//  pthread_mutex_lock(&entry->tcp_state.sig_mut);
+//  entry->tcp_state.condition = false;
+//  pthread_mutex_unlock(&entry->tcp_state.sig_mut);
 }
 
 int tcp_rx(struct subuff *sub) {
