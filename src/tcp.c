@@ -48,6 +48,8 @@ int tcp_rx(struct subuff *sub) {
         enum TCP_STATE tcp_state = entry->tcp_state.state;
         pthread_mutex_unlock(&entry->tcp_state_mut);
 
+
+        printf("\n STATE IS: %u\n", tcp_state);
         switch (tcp_state) {
             case SYN_SENT:
                 if (hdr->ack == 1 && hdr->syn == 1) {
@@ -76,6 +78,7 @@ int tcp_rx(struct subuff *sub) {
                 }
                 break;
             case ESTABLISHED: {
+                printf("\n \t I AM HERE \n");
                 // although the implementation isn't great as we're copying the entire payload..
                 // it seems to be the only way the implementation stays correct
                 // create a recv_packets entry

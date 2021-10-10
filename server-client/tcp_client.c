@@ -85,7 +85,7 @@ int main(int argc, char** argv)
     write_pattern(tx_buffer, TEST_BUF_SIZE);
     //printf("\n\nSending data -----------------------------------------------\n\n");
 
-    //// send test buffer
+// send test buffer
     while (so_far < TEST_BUF_SIZE){
         ret = send(server_fd, tx_buffer + so_far, TEST_BUF_SIZE - so_far, 0);
         if( 0 > ret){
@@ -93,10 +93,11 @@ int main(int argc, char** argv)
             return -ret;
         }
         so_far+=ret;
-        printf("\n\t [send loop] %d bytes, looping again, so_far %d target %d \n", ret, so_far, TEST_BUF_SIZE);
+        printf("\t [send loop] %d bytes, looping again, so_far %d target %d \n", ret, so_far, TEST_BUF_SIZE);
     }
 
-    printf("\nOK: waiting to receive data......\n");
+    printf("\nOK: buffer sent successfully \n");
+    printf("OK: waiting to receive data \n");
     // receive test buffer
     so_far = 0;
     while (so_far < TEST_BUF_SIZE) {
@@ -108,8 +109,6 @@ int main(int argc, char** argv)
         so_far+=ret;
         printf("\t [receive loop] %d bytes, looping again, so_far %d target %d \n", ret, so_far, TEST_BUF_SIZE);
     }
-
-//    wireshark_print(rx_buffer, TEST_BUF_SIZE);
     printf("Results of pattern matching: %s \n", match_pattern(rx_buffer, TEST_BUF_SIZE));
     // close the socket
     // now we sleep a bit to drain the queues and then trigger the close logic

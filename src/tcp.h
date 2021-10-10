@@ -137,6 +137,7 @@ uint8_t *sub_pop(struct subuff *sub, unsigned int len);
 #define TCP_PAYLOAD_FROM_SUB(_sub) ((void *)((_sub)->head + IP_HDR_LEN + ETH_HDR_LEN + ((TCP_HDR_FROM_SUB(_sub))->data_offset) * 4))
 #define TCP_HDR_LEN 32 // TCP header length for 8 bit words long header
 #define TCP_MAX_WINDOW 65495 // max possible window size of a TCP packet
+#define TCP_SERVER_MSS 1460 // maximum payload segment size that can be transported in a single packet, set by the server, but can be adjusted
 
 #define MIN_ALLOCATED_TCP_SUB 66 // minimum subuff size for a TCP packet with an 8 bit words long header
 #define MIN_PADDED_TCP_LEN (MIN_ALLOCATED_TCP_SUB - ( IP_HDR_LEN + ETH_HDR_LEN))

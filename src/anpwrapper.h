@@ -37,6 +37,7 @@ struct anp_socket_entry {
     uint16_t src_port;
     uint16_t dst_port;
     uint32_t seq_num; // used to save the last seq number of the sender
+    uint32_t ack_num; // used to save the last ack number of the receiver
 };
 
 /**

@@ -154,7 +154,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 
         pthread_mutex_unlock(&sock_entry->tcp_state.sig_mut);
 
-        pthread_mutex_lock(&sock_entry->tcp_state_mut);
+        pthread_mutex_lock(&sock_entry->tcp_state_mut); // acquire the lock again after receiving SYN ACK
         if (!sock_entry->tcp_state.condition) {
             return -1;
         }
@@ -177,7 +177,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
         ack_hdr->ack_num = htonl(ntohl(rx_hdr->seq_num) + 1);
         ack_hdr->data_offset = 8; // header contains 8 x 32 bits
         ack_hdr->ack = 1;
-        ack_hdr->window = htons(TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
+        ack_hdr->window = htons(TCP_MAX_WINDOW); // max amount can be received, not the best option, but currently works
 
         ack_hdr->checksum = 0;  // zeroing checksum before recalculating
         ack_hdr->checksum = do_tcp_csum((uint8_t *) ack_hdr, TCP_HDR_LEN, IPP_TCP, sock_entry->src_addr,
@@ -195,6 +195,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
         sock_entry->tcp_state.state = ESTABLISHED; // Three-way handshake complete, the connection is now ESTABLISHED
         sock_entry->tcp_state.sequence_num = ack_hdr->seq_num;
         sock_entry->seq_num = ack_hdr->seq_num; // update the last sequence number for future use
+        sock_entry->ack_num = ack_hdr->ack_num; // update the last sequence number for future use
         pthread_mutex_unlock(&sock_entry->tcp_state_mut); // release the lock
 
         return 0;
@@ -212,44 +213,54 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags) {
     if (is_anp_sockfd) {
         printf("\nSending payload of size %zu in progress...... \n", len);
         struct anp_socket_entry *sock_entry = get_socket(sockfd);
-        pthread_mutex_lock(&sock_entry->tcp_state_mut); // ensures no two or more connections are made at the same time
+        pthread_mutex_lock(&sock_entry->tcp_state_mut); // get the lock
 
         if (sock_entry->tcp_state.state != ESTABLISHED) {
             printf("Connection is not ESTABLISHED; Expected ESTABLISHED connection to send packages... \n");
             return -1;
         }
 
-        struct subuff *send_sub = alloc_tcp_payload(len);
+        size_t payload = len; // the size that needs to be sent
+        bool final = false; // boolean used to set the PSH flag for the last segment
+
+        // split the packet into smaller segments to comply with the network's MSS
+        if (payload > TCP_SERVER_MSS) {
+            payload = TCP_SERVER_MSS;
+        } else {
+            printf("Sending final packet......\n");
+            final = true;
+        }
+
+        struct subuff *send_sub = alloc_tcp_payload(payload);
         if (!send_sub) {
             printf("Error: allocation of the TCP tx_sub failed \n");
             return -1;
         }
 
         // Pushing data
-        printf("Copied buffer of len: %zu into payload \n", len);
-        uint8_t *payload_buf = sub_push(send_sub, len);
-        memcpy(payload_buf, buf, len);
+        printf("Copied buffer of length %zu into payload \n", payload);
+        uint8_t *payload_buf = sub_push(send_sub, payload);
+        memcpy(payload_buf, buf, payload);
 
         printf("Creating header...... \n");
-        // Pushing header
         struct tcphdr *send_hdr = (struct tcphdr *) sub_push(send_sub, TCP_HDR_LEN);
-        struct tcphdr *rx_hdr = TCP_HDR_FROM_SUB(sock_entry->tcp_state.rx_sub);
 
         // Preparing the packet
         send_hdr->src_port = sock_entry->src_port;
         send_hdr->dst_port = sock_entry->dst_port;
-        send_hdr->seq_num = htonl(SIMPLE_ISN + 1);
-        send_hdr->ack_num = htonl(ntohl(rx_hdr->seq_num) + 1);
+        send_hdr->seq_num = sock_entry->seq_num; // seq number is the same as the previous one
+        send_hdr->ack_num = sock_entry->ack_num;
         send_hdr->data_offset = 8; // header contains 8 x 32 bits
-        send_hdr->psh = 1;
         send_hdr->ack = 1;
+        if (final) {
+            send_hdr->psh = 1;
+        }
         send_hdr->window = htons(
                 TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
 
         send_hdr->checksum = 0; // zeroing checksum before recalculating
-        send_hdr->checksum = do_tcp_csum((uint8_t *) send_hdr, TCP_HDR_LEN + len, IPP_TCP, sock_entry->src_addr,
-                                         sock_entry->dst_addr) -
-                             htons(256);
+        send_hdr->checksum = do_tcp_csum((uint8_t *) send_hdr, TCP_HDR_LEN + payload, IPP_TCP, sock_entry->src_addr,
+                                         sock_entry->dst_addr);
 
         int err = tcp_output(ntohl(sock_entry->dst_addr), send_sub);
         if (err < 0) {
@@ -257,23 +268,23 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags) {
         }
 
         printf("Waiting on ACK......\n");
-        pthread_mutex_unlock(&sock_entry->tcp_state_mut);
+        pthread_mutex_unlock(&sock_entry->tcp_state_mut); // release the lock
 
         // wait on ACK
         pthread_mutex_lock(&sock_entry->tcp_state.sig_mut);
         while (!sock_entry->tcp_state.condition) {
-            // wait on ACK, see ip_rx.c for receiving end.
             pthread_cond_wait(&sock_entry->tcp_state.sig_cond, &sock_entry->tcp_state.sig_mut);
         }
 
-        pthread_mutex_lock(&sock_entry->tcp_state_mut);
-        if (!sock_entry->tcp_state.condition) {
-            return -1;
-        }
+        pthread_mutex_unlock(&sock_entry->tcp_state.sig_mut);
 
-
+        sock_entry->tcp_state.tx_sub = send_sub;
+        sock_entry->ack_num = send_hdr->ack_num; // ACK does not change since the server is not sending any payload
+        sock_entry->seq_num = ntohl(send_hdr->seq_num) + payload; // add the number of sent bytes to the seq number
+        sock_entry->seq_num = htonl(sock_entry->seq_num); // convert back to network byte order
         sock_entry->tcp_state.sequence_num = send_hdr->seq_num;
-        return len;
+
+        return payload;
     }
     // the default path
     return _send(sockfd, buf, len, flags);
@@ -407,7 +418,8 @@ int close(int sockfd) {
                 TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
 
         ack_hdr->checksum = 0;  // zeroing checksum before recalculating
-        ack_hdr->checksum = do_tcp_csum((uint8_t *) ack_hdr, TCP_HDR_LEN, IPP_TCP, sock_entry->src_addr, sock_entry->dst_addr);
+        ack_hdr->checksum = do_tcp_csum((uint8_t *) ack_hdr, TCP_HDR_LEN, IPP_TCP, sock_entry->src_addr,
+                                        sock_entry->dst_addr);
 
         printf("Sending ACK..\n");
         debug_tcp_hdr("ACK out \n", ack_hdr);
