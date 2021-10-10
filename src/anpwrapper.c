@@ -307,17 +307,22 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags) {
 
     if (is_anp_sockfd) {
         size_t read_len = 0;
-        struct anp_socket_entry *socket_entry = get_socket(sockfd);
+        struct anp_socket_entry *sock_entry = get_socket(sockfd);
+        pthread_mutex_lock(&sock_entry->tcp_state.sig_mut);
 
-        pthread_mutex_lock(&socket_entry->tcp_state.sig_mut);
-        while (!socket_entry->tcp_state.condition) {
-            // Wait to be signalled by an incoming TCP response from ip_rx
-            pthread_cond_wait(&socket_entry->tcp_state.sig_cond,
-                              &socket_entry->tcp_state.sig_mut);
+        if (sock_entry->tcp_state.state != ESTABLISHED) {
+            printf("Connection is not ESTABLISHED; Expected ESTABLISHED connection to receive packages... \n");
+            return -1;
         }
-        pthread_mutex_unlock(&socket_entry->tcp_state.sig_mut);
 
-        pthread_mutex_lock(&socket_entry->tcp_state_mut);
+        while (!sock_entry->tcp_state.condition) {
+            // Wait to be signalled by an incoming TCP response from ip_rx
+            pthread_cond_wait(&sock_entry->tcp_state.sig_cond,
+                              &sock_entry->tcp_state.sig_mut);
+        }
+        pthread_mutex_unlock(&sock_entry->tcp_state.sig_mut);
+
+        pthread_mutex_lock(&sock_entry->tcp_state_mut);
         async_printf("Read TCP packet.\n");
         struct list_head *item;
         struct recv_packet_entry *entry;
@@ -340,7 +345,7 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags) {
             goto ret;
         }
         ret:
-        pthread_mutex_unlock(&socket_entry->tcp_state_mut);
+        pthread_mutex_unlock(&sock_entry->tcp_state_mut);
         return read_len;
     }
     return _recv(sockfd, buf, len, flags);
@@ -354,7 +359,6 @@ int close(int sockfd) {
         struct anp_socket_entry *sock_entry = get_socket(sockfd);
         pthread_mutex_lock(&sock_entry->tcp_state_mut); // ensures no two or more connections are made at the same time
 
-
         // SEND FIN
         struct subuff *close_sub = alloc_tcp_sub();
         if (!close_sub) {
@@ -362,16 +366,16 @@ int close(int sockfd) {
             return -1;
         }
 
-        struct tcphdr *close_hdr = (struct tcphdr *) sub_push(close_sub, 20);
+        struct tcphdr *close_hdr = (struct tcphdr *) sub_push(close_sub, TCP_HDR_LEN);
 
         close_hdr->src_port = sock_entry->src_port;
         close_hdr->dst_port = sock_entry->dst_port;
-        close_hdr->seq_num = htonl(SIMPLE_ISN + 1);
-        close_hdr->ack_num = htonl(1);
-        close_hdr->data_offset = 8; // header contains 5 x 32 bits
+        close_hdr->seq_num = sock_entry->seq_num;
+        close_hdr->ack_num = sock_entry->ack_num;
+        close_hdr->data_offset = 8; // header contains 8 x 32 bits
         close_hdr->fin = 1;
         close_hdr->ack = 1;
-        close_hdr->window = htons(TCP_MAX_WINDOW);  // we can receive the max amount
+        close_hdr->window = htons(TCP_MAX_WINDOW);  // get the last window size
 
         close_hdr->checksum = 0;
         close_hdr->checksum = do_tcp_csum((uint8_t *) close_hdr, TCP_HDR_LEN, IPP_TCP, sock_entry->src_addr,
@@ -386,6 +390,7 @@ int close(int sockfd) {
         sock_entry->tcp_state.state = FIN_WAIT_1;
         pthread_mutex_unlock(&sock_entry->tcp_state_mut);
 
+        sleep(2);
         // wait on FIN-ACK
         pthread_mutex_lock(&sock_entry->tcp_state.sig_mut);
         while (!sock_entry->tcp_state.condition) {
@@ -394,7 +399,7 @@ int close(int sockfd) {
         }
         pthread_mutex_unlock(&sock_entry->tcp_state.sig_mut);
 
-        // SEND LAST ACK
+        // SEND FINAL ACK
         pthread_mutex_lock(&sock_entry->tcp_state_mut);
 
         struct subuff *ack_sub = alloc_tcp_sub();
@@ -403,15 +408,15 @@ int close(int sockfd) {
             return -1;
         }
 
-        sub_push(ack_sub, 20);
+        sub_push(ack_sub, TCP_HDR_LEN);
         struct tcphdr *ack_hdr = TCP_HDR_FROM_SUB(ack_sub);
         struct tcphdr *rx_hdr = TCP_HDR_FROM_SUB(sock_entry->tcp_state.rx_sub);
 
         // Preparing TCP ACK packet
         ack_hdr->src_port = sock_entry->src_port;
         ack_hdr->dst_port = sock_entry->dst_port;
-        ack_hdr->seq_num = htonl(SIMPLE_ISN + 1);
-        ack_hdr->ack_num = htonl(ntohl(rx_hdr->seq_num) + 1);
+        ack_hdr->seq_num = sock_entry->seq_num + htonl(1);
+        ack_hdr->ack_num = htonl(ntohl(rx_hdr->seq_num) + 2);
         ack_hdr->data_offset = 8; // header contains 5 x 32 bits
         ack_hdr->ack = 1;
         ack_hdr->window = htons(
@@ -447,9 +452,4 @@ void _function_override_init() {
     _send = dlsym(RTLD_NEXT, "send");
     _recv = dlsym(RTLD_NEXT, "recv");
     _close = dlsym(RTLD_NEXT, "close");
-}
-
-struct tcp_sock_state *get_tcp_state(struct anp_socket_entry *socket_entry) {
-
-
 }
