@@ -82,6 +82,7 @@ int socket(int domain, int type, int protocol) {
         list_add_tail(&entry->list, &sockets);
 
         // initialize mutex locks
+        pthread_mutex_init(&recv_packets_mut, NULL);
         pthread_mutex_init(&entry->tcp_state_mut, NULL);
         pthread_mutex_init(&entry->tcp_state.sig_mut, NULL);
 
@@ -311,24 +312,22 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags) {
         struct list_head *item;
         struct recv_packet_entry *entry;
         async_printf("reading received packets\n");
-        int i = 0;
-        list_for_each(item, &recv_packets) {
-            entry = list_entry(item, struct recv_packet_entry, list);
-            if (entry->sockfd != sockfd)
-                continue;
+
+        struct recv_packet_entry* packet = NULL;
+        try_again(1000, 1, packet == NULL, {
+          printf("Looking at TCP sub %d/1000", i);
+          packet = get_tcp_sub(sockfd, ESTABLISHED);
+        });
 
 
-            if (len < entry->length) {
-                read_len = len;
-            } else {
-                read_len = entry->length;
-            }
-
-            memcpy(buf, entry->buffer, read_len);
-            list_del(item);
-            goto ret;
+        if (len < packet->length) {
+          read_len = len;
+        } else {
+          read_len = entry->length;
         }
-        ret:
+        memcpy(buf, entry->buffer, read_len);
+        pop_tcp_sub(sockfd, ESTABLISHED);
+
         pthread_mutex_unlock(&socket_entry->tcp_state_mut);
         return read_len;
     }
