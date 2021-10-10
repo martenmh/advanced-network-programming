@@ -207,7 +207,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
             printf("\nGetting err: %d, errno: %d \n", err, errno);
             return err;
         }
-
+        sock_entry->window = htons(TCP_MAX_WINDOW);
         sock_entry->tcp_state.state = ESTABLISHED; // three-way handshake complete, the connection is now ESTABLISHED
         sock_entry->seq_num = ack_hdr->seq_num; // update the last sequence number for future use
         sock_entry->ack_num = ack_hdr->ack_num; // update the last sequence number for future use
@@ -323,7 +323,8 @@ ssize_t acknowledge(struct anp_socket_entry* sock_entry, struct recv_packet_entr
 
   ack_hdr->data_offset = 8; // header contains 5 x 32 bits
   ack_hdr->ack = 1;
-  ack_hdr->window = htons(TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
+  ack_hdr->window = htons(ntohs(sock_entry->window) - packet_entry->length);//htons(TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
+
   ack_hdr->checksum = 0;  // zeroing checksum before recalculating
   ack_hdr->checksum = do_tcp_csum((uint8_t *) ack_hdr, TCP_HDR_LEN, IPP_TCP,
                                   sock_entry->src_addr, sock_entry->dst_addr);
@@ -331,6 +332,7 @@ ssize_t acknowledge(struct anp_socket_entry* sock_entry, struct recv_packet_entr
   printf("\nSending ACK......\n");
 
   sock_entry->tcp_state.tx_sub = ack_sub;
+  sock_entry->window = ack_hdr->window;
   sock_entry->ack_num = ack_hdr->ack_num; // ACK does not change since the server is not sending any payload
   sock_entry->seq_num = ack_hdr->seq_num; // add the number of sent bytes to the seq number
 
@@ -382,7 +384,9 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags) {
             }
 
             memcpy(buf, entry->buffer, read_len);
-            acknowledge(sock_entry, entry);
+            if(acknowledge(sock_entry, entry) != 0){
+              printf("Failed to acknowledge\n");
+            }
             list_del(item);
             break;
         }

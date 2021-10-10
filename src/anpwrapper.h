@@ -32,6 +32,7 @@ struct anp_socket_entry {
 
     pthread_mutex_t tcp_state_mut;
 
+    uint16_t window;
     uint32_t dst_addr;
     uint32_t src_addr;
     uint16_t src_port;
