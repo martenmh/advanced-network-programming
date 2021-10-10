@@ -171,8 +171,8 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
         ack_hdr->ack = 1;
         ack_hdr->window = htons(TCP_MAX_WINDOW); // max amount can be received, not the best option, but works for now
         ack_hdr->checksum = 0;  // zeroing checksum before recalculating
-        ack_hdr->checksum = do_tcp_csum((uint8_t *) ack_hdr, TCP_HDR_LEN, IPP_TCP, sock_entry->src_addr,
-                                        sock_entry->dst_addr);
+        ack_hdr->checksum = do_tcp_csum((uint8_t *) ack_hdr, TCP_HDR_LEN, IPP_TCP,
+                                        sock_entry->src_addr, sock_entry->dst_addr);
 
         printf("\nSending ACK......\n");
 
@@ -240,11 +240,10 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags) {
         if (final) { // only needs to be set for the final segment
             send_hdr->psh = 1;
         }
-        send_hdr->window = htons(
-                TCP_MAX_WINDOW);  // currently, set to max amount, needs to be adjusted to avoid congestion
+        send_hdr->window = htons(TCP_MAX_WINDOW);  // currently, set to max amount, needs to be adjusted to avoid congestion
         send_hdr->checksum = 0; // zeroing checksum before recalculating
-        send_hdr->checksum = do_tcp_csum((uint8_t *) send_hdr, TCP_HDR_LEN + payload, IPP_TCP, sock_entry->src_addr,
-                                         sock_entry->dst_addr);
+        send_hdr->checksum = do_tcp_csum((uint8_t *) send_hdr, TCP_HDR_LEN + payload, IPP_TCP,
+                                         sock_entry->src_addr, sock_entry->dst_addr);
 
         int err = tcp_output(ntohl(sock_entry->dst_addr), send_sub);
         if (err < 0) {
@@ -272,17 +271,6 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags) {
     return _send(sockfd, buf, len, flags);
 }
 
-struct tcphdr *wait_on_tcp_response(struct anp_socket_entry *sock_entry) {
-    pthread_mutex_lock(&sock_entry->tcp_state.sig_mut);
-    while (!sock_entry->tcp_state.condition) {
-        // Wait to be signalled by an incoming TCP response from ip_rx
-        pthread_cond_wait(&sock_entry->tcp_state.sig_cond, &sock_entry->tcp_state.sig_mut);
-    }
-    pthread_mutex_unlock(&sock_entry->tcp_state.sig_mut);
-
-    return TCP_HDR_FROM_SUB(sock_entry->tcp_state.rx_sub);
-}
-
 ssize_t recv(int sockfd, void *buf, size_t len, int flags) {
     bool is_anp_sockfd = is_anp_socket(sockfd);
 
@@ -292,7 +280,7 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags) {
         pthread_mutex_lock(&sock_entry->tcp_state.sig_mut);
 
         if (sock_entry->tcp_state.state != ESTABLISHED) {
-            printf("Connection is not ESTABLISHED; Expected ESTABLISHED connection to receive packages... \n");
+            printf("\nAborting receive: Expected ESTABLISHED connection to receive packages... \n");
             return -1;
         }
 
@@ -357,8 +345,8 @@ int close(int sockfd) {
         close_hdr->ack = 1;
         close_hdr->window = htons(TCP_MAX_WINDOW);  // get the last window size
         close_hdr->checksum = 0;
-        close_hdr->checksum = do_tcp_csum((uint8_t *) close_hdr, TCP_HDR_LEN, IPP_TCP, sock_entry->src_addr,
-                                          sock_entry->dst_addr);
+        close_hdr->checksum = do_tcp_csum((uint8_t *) close_hdr, TCP_HDR_LEN, IPP_TCP,
+                                          sock_entry->src_addr, sock_entry->dst_addr);
 
         int err = tcp_output(ntohl(sock_entry->dst_addr), close_sub);
         if (err < 0)
@@ -397,11 +385,10 @@ int close(int sockfd) {
         ack_hdr->ack_num = htonl(ntohl(rx_hdr->seq_num) + 2);
         ack_hdr->data_offset = 8; // header contains 5 x 32 bits
         ack_hdr->ack = 1;
-        ack_hdr->window = htons(
-                TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
+        ack_hdr->window = htons(TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
         ack_hdr->checksum = 0;  // zeroing checksum before recalculating
-        ack_hdr->checksum = do_tcp_csum((uint8_t *) ack_hdr, TCP_HDR_LEN, IPP_TCP, sock_entry->src_addr,
-                                        sock_entry->dst_addr);
+        ack_hdr->checksum = do_tcp_csum((uint8_t *) ack_hdr, TCP_HDR_LEN, IPP_TCP,
+                                        sock_entry->src_addr, sock_entry->dst_addr);
 
         printf("\nSending last ACK......\n");
 

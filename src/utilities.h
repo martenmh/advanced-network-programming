@@ -39,14 +39,13 @@ volatile static pthread_mutex_t printf_mutex;
 void init_utils();
 int async_printf(const char *format, ...);
 
-
 /**
  * Print a sequence of bytes in hexadecimal just like wireshark
  * @example "40 00 40 06 3c 34 12 b2  a8 c0 04 00 00 0a a8 cb"
  * @param buf the sequence of bytes
  * @param buf_len the length of the sequence
  */
-void wireshark_print(void* buf, size_t buf_len);
+void wireshark_print(void *buf, size_t buf_len);
 
 #define ANP_MIN(a, b) (a < b ? a : b)
 

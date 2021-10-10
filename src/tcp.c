@@ -51,7 +51,6 @@ int tcp_rx(struct subuff *sub) {
                 if (hdr->ack == 1 && hdr->syn == 1) {
                     async_printf("\nIncoming TCP SYN-ACK \n");
                     async_printf("Validating checksum..... \n");
-
                     // validate checksum of the incoming packet
                     int err = validate_csum(hdr, entry->src_addr, entry->dst_addr);
                     if (err != 0) {
@@ -137,8 +136,7 @@ int tcp_rx(struct subuff *sub) {
 int validate_csum(struct tcphdr *hdr, uint32_t src_addr, uint32_t dst_addr) {
     uint16_t old_csum = hdr->checksum;
     hdr->checksum = 0;
-    uint16_t new_csum = do_tcp_csum((uint8_t *) hdr, hdr->data_offset * 4,
-                                    IPP_TCP, src_addr, dst_addr);
+    uint16_t new_csum = do_tcp_csum((uint8_t *) hdr, hdr->data_offset * 4, IPP_TCP, src_addr, dst_addr);
     if (old_csum != new_csum) {
         return -1;
     }
