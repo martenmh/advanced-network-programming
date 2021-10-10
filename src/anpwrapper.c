@@ -318,9 +318,8 @@ ssize_t acknowledge(struct anp_socket_entry* sock_entry, struct recv_packet_entr
   ack_hdr->dst_port = sock_entry->dst_port;
 
   ack_hdr->seq_num = htonl(ntohl(sock_entry->seq_num) + 1);
-  printf("prev rx_seq_num: %d", ntohl(packet_entry->rx_seq_num));
-  ack_hdr->ack_num = htonl(ntohl(packet_entry->rx_seq_num) + packet_entry->length + 1);
-  printf("next rx_seq_num: %d", ntohl(packet_entry->rx_seq_num));
+  ack_hdr->ack_num = htonl(ntohl(packet_entry->rx_seq_num) + packet_entry->length);
+
 
   ack_hdr->data_offset = 8; // header contains 5 x 32 bits
   ack_hdr->ack = 1;
@@ -335,7 +334,7 @@ ssize_t acknowledge(struct anp_socket_entry* sock_entry, struct recv_packet_entr
   sock_entry->ack_num = ack_hdr->ack_num; // ACK does not change since the server is not sending any payload
   sock_entry->seq_num = ack_hdr->seq_num; // add the number of sent bytes to the seq number
 
-  int err = ip_output(ntohl(sock_entry->dst_addr), ack_sub);
+  int err = tcp_output(ntohl(sock_entry->dst_addr), ack_sub);
   if (err < 0) {
     printf("\nGetting err: %d, errno: %d \n", err, errno);
     pthread_mutex_unlock(&sock_entry->tcp_state_mut);
