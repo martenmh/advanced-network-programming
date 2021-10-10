@@ -1,0 +1,25 @@
+15:46:18.486264 IP 10.0.0.4.55336 > marten-VirtualBox.43211: Flags [S], seq 12648430, win 65495, options [eol], length 0
+15:46:18.486307 IP marten-VirtualBox.43211 > 10.0.0.4.55336: Flags [S.], seq 2301056247, ack 12648431, win 64240, options [mss 1460], length 0
+15:46:19.486623 IP 10.0.0.4.55336 > marten-VirtualBox.43211: Flags [.], ack 1, win 65495, options [eol], length 0
+15:46:19.486894 IP marten-VirtualBox.43211 > 10.0.0.4.55336: Flags [.], seq 1:537, ack 1, win 64240, length 536
+15:46:19.486905 IP marten-VirtualBox.43211 > 10.0.0.4.55336: Flags [P.], seq 537:1073, ack 1, win 64240, length 536
+15:46:19.486918 IP marten-VirtualBox.43211 > 10.0.0.4.55336: Flags [.], seq 1073:1609, ack 1, win 64240, length 536
+15:46:19.486920 IP marten-VirtualBox.43211 > 10.0.0.4.55336: Flags [P.], seq 1609:2145, ack 1, win 64240, length 536
+15:46:19.486928 IP marten-VirtualBox.43211 > 10.0.0.4.55336: Flags [.], seq 2145:2681, ack 1, win 64240, length 536
+15:46:19.486930 IP marten-VirtualBox.43211 > 10.0.0.4.55336: Flags [P.], seq 2681:3217, ack 1, win 64240, length 536
+15:46:19.486936 IP marten-VirtualBox.43211 > 10.0.0.4.55336: Flags [.], seq 3217:3753, ack 1, win 64240, length 536
+15:46:19.486938 IP marten-VirtualBox.43211 > 10.0.0.4.55336: Flags [P.], seq 3753:4097, ack 1, win 64240, length 344
+15:46:20.487070 IP 10.0.0.4.55336 > marten-VirtualBox.43211: Flags [.], ack 3, win 65495, options [eol], length 0
+15:46:20.487142 IP 10.0.0.4.55336 > marten-VirtualBox.43211: Flags [.], ack 539, win 65495, options [eol], length 0
+15:46:20.487188 IP 10.0.0.4.55336 > marten-VirtualBox.43211: Flags [.], ack 1075, win 65495, options [eol], length 0
+15:46:20.487232 IP 10.0.0.4.55336 > marten-VirtualBox.43211: Flags [.], ack 1611, win 65495, options [eol], length 0
+15:46:20.487273 IP 10.0.0.4.55336 > marten-VirtualBox.43211: Flags [.], ack 2147, win 65495, options [eol], length 0
+15:46:20.487315 IP 10.0.0.4.55336 > marten-VirtualBox.43211: Flags [.], ack 2683, win 65495, options [eol], length 0
+15:46:20.487355 IP 10.0.0.4.55336 > marten-VirtualBox.43211: Flags [.], ack 3219, win 65495, options [eol], length 0
+15:46:20.487397 IP 10.0.0.4.55336 > marten-VirtualBox.43211: Flags [.], ack 3755, win 65495, options [eol], length 0
+15:46:23.687262 IP marten-VirtualBox.43211 > 10.0.0.4.55336: Flags [P.], seq 3755:4097, ack 1, win 64240, length 342
+15:46:25.487529 IP 10.0.0.4.55336 > marten-VirtualBox.43211: Flags [F.], seq 9, ack 3755, win 65495, options [eol], length 0
+15:46:25.487570 IP marten-VirtualBox.43211 > 10.0.0.4.55336: Flags [.], ack 1, win 64240, length 0
+15:46:27.487761 IP 10.0.0.4.55336 > marten-VirtualBox.43211: Flags [.], ack 3755, win 65495, options [eol], length 0
+15:46:29.831267 IP marten-VirtualBox.43211 > 10.0.0.4.55336: Flags [P.], seq 3755:4097, ack 1, win 64240, length 342
+

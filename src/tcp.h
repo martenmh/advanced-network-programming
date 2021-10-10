@@ -102,6 +102,7 @@ struct recv_packet_entry {
     struct list_head list;
     // identification
     uint32_t rx_seq_num;
+    uint32_t rx_ack_num;
     int sockfd;
     // buffer
     size_t length;

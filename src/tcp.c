@@ -35,9 +35,9 @@ void wake_up_tcp(struct anp_socket_entry* entry, bool failed){
   pthread_cond_signal(&entry->tcp_state.sig_cond); // signal connect() call
   pthread_mutex_unlock(&entry->tcp_state.sig_mut);
 
-//  pthread_mutex_lock(&entry->tcp_state.sig_mut);
-//  entry->tcp_state.condition = false;
-//  pthread_mutex_unlock(&entry->tcp_state.sig_mut);
+  pthread_mutex_lock(&entry->tcp_state.sig_mut);
+  entry->tcp_state.condition = false;
+  pthread_mutex_unlock(&entry->tcp_state.sig_mut);
 }
 
 int tcp_rx(struct subuff *sub) {
@@ -96,6 +96,7 @@ int tcp_rx(struct subuff *sub) {
                 struct recv_packet_entry *recv_entry = calloc(1, sizeof(struct recv_packet_entry));
                 list_init(&recv_entry->list);
                 recv_entry->rx_seq_num = (TCP_HDR_FROM_SUB(sub))->seq_num;
+                recv_entry->rx_ack_num = (TCP_HDR_FROM_SUB(sub))->ack_num;
                 recv_entry->sockfd = entry->sockfd;
 
                 recv_entry->length = TCP_PAYLOAD_LEN(sub);
@@ -131,6 +132,9 @@ int tcp_rx(struct subuff *sub) {
             case FIN_WAIT_2:
                 break;
             case CLOSE_WAIT:
+              printf("\nReceived FIN-ACK......\n");
+              entry->tcp_state.rx_sub = sub;
+              wake_up_tcp(entry, false);
                 break;
             case CLOSING:
                 break;
