@@ -33,7 +33,6 @@ int tcp_rx(struct subuff *sub) {
     struct anp_socket_entry *entry;
     struct tcphdr *hdr = TCP_HDR_FROM_SUB(sub);
 
-
     list_for_each(item, &sockets) {
         entry = list_entry(item, struct anp_socket_entry, list);
 
@@ -42,18 +41,15 @@ int tcp_rx(struct subuff *sub) {
         }
 
         async_printf("Incoming TCP response is related to an existing TCP connection \n");
-
         pthread_mutex_lock(&entry->tcp_state_mut);
         entry->tcp_state.rx_sub = sub;
         enum TCP_STATE tcp_state = entry->tcp_state.state;
         pthread_mutex_unlock(&entry->tcp_state_mut);
 
-
-        printf("\n STATE IS: %u\n", tcp_state);
         switch (tcp_state) {
             case SYN_SENT:
                 if (hdr->ack == 1 && hdr->syn == 1) {
-                    async_printf("Received TCP SYN-ACK \n");
+                    async_printf("\nIncoming TCP SYN-ACK \n");
                     async_printf("Validating checksum..... \n");
 
                     // validate checksum of the incoming packet
@@ -61,24 +57,20 @@ int tcp_rx(struct subuff *sub) {
                     if (err != 0) {
                         async_printf("\nChecksum of incoming TCP response is incorrect, dropping segment \n");
                         return err;
-                    }
-
-                    { // lock tcp_state
+                    } else { // lock tcp_state
                         pthread_mutex_lock(&entry->tcp_state_mut);
                         entry->tcp_state.rx_sub = sub;
-
                         // send signal to waiting connect():
                         pthread_mutex_lock(&entry->tcp_state.sig_mut);
                         entry->tcp_state.condition = true;
                         pthread_cond_signal(&entry->tcp_state.sig_cond); // signal connect() call
                         pthread_mutex_unlock(&entry->tcp_state.sig_mut);
-
                         pthread_mutex_unlock(&entry->tcp_state_mut);
                     } // unlock tcp_state
                 }
                 break;
-            case ESTABLISHED: {
-                printf("\n \t I AM HERE \n");
+
+            case ESTABLISHED:
                 // although the implementation isn't great as we're copying the entire payload..
                 // it seems to be the only way the implementation stays correct
                 // create a recv_packets entry
@@ -112,9 +104,8 @@ int tcp_rx(struct subuff *sub) {
 
                 pthread_mutex_unlock(&entry->tcp_state_mut);
                 async_printf("signalled \n");
-                return 0;
-            }
                 break;
+
             case SYN_RECEIVED:
                 break;
             case FIN_WAIT_1:
@@ -133,12 +124,12 @@ int tcp_rx(struct subuff *sub) {
                 break;
             case LISTEN:
                 break;
+
             default:
                 async_printf("\nUnknown TCP state: %d \n", tcp_state);
+                return -1;
         }
-
-    } // unlock
-
+    }
     async_printf("\nSuccessfully received TCP response!\n");
     return 0;
 }
@@ -146,10 +137,8 @@ int tcp_rx(struct subuff *sub) {
 int validate_csum(struct tcphdr *hdr, uint32_t src_addr, uint32_t dst_addr) {
     uint16_t old_csum = hdr->checksum;
     hdr->checksum = 0;
-
-    uint16_t new_csum = do_tcp_csum((uint8_t *)hdr, hdr->data_offset * 4,
+    uint16_t new_csum = do_tcp_csum((uint8_t *) hdr, hdr->data_offset * 4,
                                     IPP_TCP, src_addr, dst_addr);
-
     if (old_csum != new_csum) {
         return -1;
     }
@@ -157,7 +146,6 @@ int validate_csum(struct tcphdr *hdr, uint32_t src_addr, uint32_t dst_addr) {
 }
 
 struct tcphdr *create_syn(struct tcphdr *hdr, const struct sockaddr *addr) {
-
     hdr->src_port = htons(random_port(1024, 65536)); // min 1024, max 65536
     hdr->dst_port = ((struct sockaddr_in *) addr)->sin_port;
     hdr->seq_num = htonl(SIMPLE_ISN);
@@ -165,10 +153,8 @@ struct tcphdr *create_syn(struct tcphdr *hdr, const struct sockaddr *addr) {
     hdr->data_offset = 8; // header contains 8 x 32 bits
     hdr->syn = 1;
     hdr->window = htons(TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
-
     uint32_t dst_addr = ip_str_to_n32(inet_ntoa(((struct sockaddr_in *) addr)->sin_addr));
     uint32_t src_addr = ip_str_to_n32(ANP_IP_CLIENT_EXT);
-
     hdr->checksum = 0;  // zeroing checksum before recalculating
     hdr->checksum = do_tcp_csum((uint8_t *) hdr, TCP_HDR_LEN, IPP_TCP, src_addr, dst_addr);
 
@@ -199,10 +185,9 @@ int tcp_output(uint32_t dst_addr, struct subuff *sub) {
     if (err < 0) {
         async_printf("\nip_output returned error: %d\n", err);
         return -1;
-    } else if (err > 0) {
-        printf("\nWritten %d bytes to TAP device\n", err);
     }
     printf("\nPacket is sent successfully!\n");
+    printf("Written %d bytes to TAP device\n", err);
     return 0;
 }
 

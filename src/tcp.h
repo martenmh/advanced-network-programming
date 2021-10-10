@@ -27,11 +27,11 @@
         "reserved: %hhu, [urg: %hhu, ack: %hhu, psh: %hhu, rst: %hhu, syn: %hhu, fin: %hu], window: %hu, csum: 0x%04x, urg_ptr: %hu\n", \
         hdr->src_port, hdr->dst_port, hdr->seq_num, hdr->ack_num, hdr->data_offset, hdr->reserved, hdr->urg, hdr->ack, hdr->psh, hdr->rst, hdr->syn, hdr->fin, \
         hdr->window, hdr->checksum, hdr->urgent_ptr  \
-        )
+        ) // debugging tool using the same logic as debug ip
 
-// TCP states used in the state machine
+// TCP states used in the state machine, not all states are currently implemented
 enum TCP_STATE {
-    LISTEN, // not implemented
+    LISTEN,
     SYN_SENT,
     SYN_RECEIVED,
     ESTABLISHED,
@@ -44,13 +44,12 @@ enum TCP_STATE {
     CLOSED
 };
 
-// TCP header structure
+// TCP header structure, options are not yet implemented
 struct tcphdr {
     uint16_t src_port;
     uint16_t dst_port;
     uint32_t seq_num;
     uint32_t ack_num;
-
 #if __BYTE_ORDER == __LITTLE_ENDIAN
     uint8_t reserved: 4;
     uint8_t data_offset: 4;  // header length in bit words
@@ -58,7 +57,6 @@ struct tcphdr {
     uint8_t data_offset : 4;  // header length in bit words
     uint8_t reserved : 4;
 #endif
-
     // "Inspired" by linux's tcphdr
 #if __BYTE_ORDER == __LITTLE_ENDIAN
     uint8_t fin: 1;
@@ -77,11 +75,10 @@ struct tcphdr {
     uint8_t ack : 1;
     uint8_t urg : 1;
 #endif
-
     uint16_t window;
     uint16_t checksum;
     uint16_t urgent_ptr;
-    uint8_t data[];
+    uint8_t options[];
 } __attribute__((packed));
 
 // TCP state machine structure
@@ -94,13 +91,10 @@ struct tcp_sock_state {
     pthread_mutex_t sig_mut2;
     pthread_cond_t sig_cond2;
     volatile bool condition2;
-
     // state information
     volatile enum TCP_STATE state; // current state in TCP state machine
     volatile struct subuff *tx_sub;
     volatile struct subuff *rx_sub;
-
-    volatile uint32_t sequence_num;
 };
 
 struct recv_packet_entry {
@@ -139,12 +133,8 @@ uint8_t *sub_pop(struct subuff *sub, unsigned int len);
 #define TCP_MAX_WINDOW 65495 // max possible window size of a TCP packet
 #define TCP_SERVER_MSS 1460 // maximum payload segment size that can be transported in a single packet, set by the server, but can be adjusted
 
-#define MIN_ALLOCATED_TCP_SUB 66 // minimum subuff size for a TCP packet with an 8 bit words long header
-#define MIN_PADDED_TCP_LEN (MIN_ALLOCATED_TCP_SUB - ( IP_HDR_LEN + ETH_HDR_LEN))
-
 // Initial Sequence Number (ISN)
 #define SIMPLE_ISN  0xC0FFEE  // unsafe but arbitrary in this case
-#define TCP_SEQ_START 1024  // really trivial but useful for debugging
 #define TCP_CONNECT_TIMEOUT 10000 // 10 sec
 
 

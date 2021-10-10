@@ -93,7 +93,7 @@ int main(int argc, char** argv)
             return -ret;
         }
         so_far+=ret;
-        printf("\t [send loop] %d bytes, looping again, so_far %d target %d \n", ret, so_far, TEST_BUF_SIZE);
+        printf("\n\t[send loop] %d bytes, looping again, so_far %d target %d\n", ret, so_far, TEST_BUF_SIZE);
     }
 
     printf("\nOK: buffer sent successfully \n");

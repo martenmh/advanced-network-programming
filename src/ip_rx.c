@@ -62,7 +62,7 @@ int ip_rx(struct subuff *sub)
             return 0;
         case IPP_TCP:
             // debug_ip_hdr("in", ih);
-            debug_tcp_hdr("in", (TCP_HDR_FROM_SUB(sub)));
+            // debug_tcp_hdr("in", (TCP_HDR_FROM_SUB(sub)));
             tcp_rx(sub);
             return 0;
         default:
