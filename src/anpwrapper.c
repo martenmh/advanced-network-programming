@@ -317,12 +317,13 @@ ssize_t acknowledge(struct anp_socket_entry* sock_entry, struct recv_packet_entr
   ack_hdr->src_port = sock_entry->src_port;
   ack_hdr->dst_port = sock_entry->dst_port;
 
-  ack_hdr->seq_num = htonl(ntohl(sock_entry->seq_num) + 1);
-  ack_hdr->ack_num = htonl(ntohl(packet_entry->rx_seq_num) + packet_entry->length);
 
+  ack_hdr->ack_num = htonl(ntohl(packet_entry->rx_seq_num) + packet_entry->length);
+  ack_hdr->seq_num = ack_hdr->ack_num;
 
   ack_hdr->data_offset = 8; // header contains 5 x 32 bits
   ack_hdr->ack = 1;
+  ack_hdr->psh = 1;
   ack_hdr->window = htons(ntohs(sock_entry->window) - packet_entry->length);//htons(TCP_MAX_WINDOW);  // max amount can be received, not the best option, but currently works
 
   ack_hdr->checksum = 0;  // zeroing checksum before recalculating
