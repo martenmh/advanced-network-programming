@@ -1,0 +1,180 @@
+Calling target program-options parser
+Adding interface s1-eth1 as port 1
+[10:05:24.496] [bmv2] [D] [thread 653] Adding interface s1-eth1 as port 1
+Adding interface s1-eth2 as port 2
+[10:05:24.546] [bmv2] [D] [thread 653] Adding interface s1-eth2 as port 2
+Adding interface s1-eth3 as port 3
+[10:05:24.602] [bmv2] [D] [thread 653] Adding interface s1-eth3 as port 3
+Server listening on 0.0.0.0:50051
+[10:05:24.649] [bmv2] [I] [thread 653] Starting Thrift server on port 9090
+[10:05:24.650] [bmv2] [I] [thread 653] Thrift server was started
+New connection
+P4Runtime SetForwardingPipelineConfig
+[10:05:27.215] [bmv2] [W] [thread 781] [P4Runtime] p4::tmp::P4DeviceConfig is deprecated
+[10:05:27.217] [bmv2] [D] [thread 781] simple_switch target has been notified of a config swap
+Connection removed
+[10:06:26.578] [bmv2] [D] [thread 664] [0.0] [cxt 0] Processing packet received on port 1
+[10:06:26.578] [bmv2] [D] [thread 664] [0.0] [cxt 0] Parser 'parser': start
+[10:06:26.578] [bmv2] [D] [thread 664] [0.0] [cxt 0] Parser 'parser' entering state 'start'
+[10:06:26.578] [bmv2] [D] [thread 664] [0.0] [cxt 0] Extracting header 'ethernet'
+[10:06:26.578] [bmv2] [D] [thread 664] [0.0] [cxt 0] Parser state 'start': key is 0800
+[10:06:26.578] [bmv2] [T] [thread 664] [0.0] [cxt 0] Bytes parsed: 14
+[10:06:26.578] [bmv2] [D] [thread 664] [0.0] [cxt 0] Parser 'parser' entering state 'parse_ipv4'
+[10:06:26.578] [bmv2] [D] [thread 664] [0.0] [cxt 0] Extracting header 'ipv4'
+[10:06:26.578] [bmv2] [D] [thread 664] [0.0] [cxt 0] Parser state 'parse_ipv4': key is 06
+[10:06:26.578] [bmv2] [T] [thread 664] [0.0] [cxt 0] Bytes parsed: 34
+[10:06:26.578] [bmv2] [D] [thread 664] [0.0] [cxt 0] Parser 'parser' entering state 'parse_tcp'
+[10:06:26.578] [bmv2] [D] [thread 664] [0.0] [cxt 0] Extracting header 'tcp'
+[10:06:26.578] [bmv2] [D] [thread 664] [0.0] [cxt 0] Parser state 'parse_tcp' has no switch, going to default next state
+[10:06:26.578] [bmv2] [T] [thread 664] [0.0] [cxt 0] Bytes parsed: 54
+[10:06:26.578] [bmv2] [D] [thread 664] [0.0] [cxt 0] Parser 'parser': end
+[10:06:26.578] [bmv2] [D] [thread 664] [0.0] [cxt 0] Pipeline 'ingress': start
+[10:06:26.578] [bmv2] [D] [thread 664] [0.0] [cxt 0] Pipeline 'ingress': end
+[10:06:26.578] [bmv2] [D] [thread 664] [0.0] [cxt 0] Egress port is 0
+[10:06:26.578] [bmv2] [D] [thread 666] [0.0] [cxt 0] Pipeline 'egress': start
+[10:06:26.578] [bmv2] [D] [thread 666] [0.0] [cxt 0] Pipeline 'egress': end
+[10:06:26.579] [bmv2] [D] [thread 666] [0.0] [cxt 0] Deparser 'deparser': start
+[10:06:26.579] [bmv2] [D] [thread 666] [0.0] [cxt 0] Deparser 'deparser': end
+[10:06:26.579] [bmv2] [D] [thread 670] [0.0] [cxt 0] Transmitting packet of size 20 out of port 0
+[10:06:27.581] [bmv2] [D] [thread 664] [1.0] [cxt 0] Processing packet received on port 1
+[10:06:27.581] [bmv2] [D] [thread 664] [1.0] [cxt 0] Parser 'parser': start
+[10:06:27.581] [bmv2] [D] [thread 664] [1.0] [cxt 0] Parser 'parser' entering state 'start'
+[10:06:27.581] [bmv2] [D] [thread 664] [1.0] [cxt 0] Extracting header 'ethernet'
+[10:06:27.582] [bmv2] [D] [thread 664] [1.0] [cxt 0] Parser state 'start': key is 0800
+[10:06:27.582] [bmv2] [T] [thread 664] [1.0] [cxt 0] Bytes parsed: 14
+[10:06:27.582] [bmv2] [D] [thread 664] [1.0] [cxt 0] Parser 'parser' entering state 'parse_ipv4'
+[10:06:27.582] [bmv2] [D] [thread 664] [1.0] [cxt 0] Extracting header 'ipv4'
+[10:06:27.582] [bmv2] [D] [thread 664] [1.0] [cxt 0] Parser state 'parse_ipv4': key is 06
+[10:06:27.582] [bmv2] [T] [thread 664] [1.0] [cxt 0] Bytes parsed: 34
+[10:06:27.582] [bmv2] [D] [thread 664] [1.0] [cxt 0] Parser 'parser' entering state 'parse_tcp'
+[10:06:27.582] [bmv2] [D] [thread 664] [1.0] [cxt 0] Extracting header 'tcp'
+[10:06:27.582] [bmv2] [D] [thread 664] [1.0] [cxt 0] Parser state 'parse_tcp' has no switch, going to default next state
+[10:06:27.582] [bmv2] [T] [thread 664] [1.0] [cxt 0] Bytes parsed: 54
+[10:06:27.582] [bmv2] [D] [thread 664] [1.0] [cxt 0] Parser 'parser': end
+[10:06:27.582] [bmv2] [D] [thread 664] [1.0] [cxt 0] Pipeline 'ingress': start
+[10:06:27.582] [bmv2] [D] [thread 664] [1.0] [cxt 0] Pipeline 'ingress': end
+[10:06:27.582] [bmv2] [D] [thread 664] [1.0] [cxt 0] Egress port is 0
+[10:06:27.582] [bmv2] [D] [thread 666] [1.0] [cxt 0] Pipeline 'egress': start
+[10:06:27.582] [bmv2] [D] [thread 666] [1.0] [cxt 0] Pipeline 'egress': end
+[10:06:27.582] [bmv2] [D] [thread 666] [1.0] [cxt 0] Deparser 'deparser': start
+[10:06:27.582] [bmv2] [D] [thread 666] [1.0] [cxt 0] Deparser 'deparser': end
+[10:06:27.582] [bmv2] [D] [thread 670] [1.0] [cxt 0] Transmitting packet of size 20 out of port 0
+[10:06:29.597] [bmv2] [D] [thread 664] [2.0] [cxt 0] Processing packet received on port 1
+[10:06:29.597] [bmv2] [D] [thread 664] [2.0] [cxt 0] Parser 'parser': start
+[10:06:29.597] [bmv2] [D] [thread 664] [2.0] [cxt 0] Parser 'parser' entering state 'start'
+[10:06:29.597] [bmv2] [D] [thread 664] [2.0] [cxt 0] Extracting header 'ethernet'
+[10:06:29.597] [bmv2] [D] [thread 664] [2.0] [cxt 0] Parser state 'start': key is 0800
+[10:06:29.598] [bmv2] [T] [thread 664] [2.0] [cxt 0] Bytes parsed: 14
+[10:06:29.598] [bmv2] [D] [thread 664] [2.0] [cxt 0] Parser 'parser' entering state 'parse_ipv4'
+[10:06:29.598] [bmv2] [D] [thread 664] [2.0] [cxt 0] Extracting header 'ipv4'
+[10:06:29.598] [bmv2] [D] [thread 664] [2.0] [cxt 0] Parser state 'parse_ipv4': key is 06
+[10:06:29.598] [bmv2] [T] [thread 664] [2.0] [cxt 0] Bytes parsed: 34
+[10:06:29.598] [bmv2] [D] [thread 664] [2.0] [cxt 0] Parser 'parser' entering state 'parse_tcp'
+[10:06:29.598] [bmv2] [D] [thread 664] [2.0] [cxt 0] Extracting header 'tcp'
+[10:06:29.598] [bmv2] [D] [thread 664] [2.0] [cxt 0] Parser state 'parse_tcp' has no switch, going to default next state
+[10:06:29.598] [bmv2] [T] [thread 664] [2.0] [cxt 0] Bytes parsed: 54
+[10:06:29.598] [bmv2] [D] [thread 664] [2.0] [cxt 0] Parser 'parser': end
+[10:06:29.598] [bmv2] [D] [thread 664] [2.0] [cxt 0] Pipeline 'ingress': start
+[10:06:29.598] [bmv2] [D] [thread 664] [2.0] [cxt 0] Pipeline 'ingress': end
+[10:06:29.598] [bmv2] [D] [thread 664] [2.0] [cxt 0] Egress port is 0
+[10:06:29.598] [bmv2] [D] [thread 666] [2.0] [cxt 0] Pipeline 'egress': start
+[10:06:29.598] [bmv2] [D] [thread 666] [2.0] [cxt 0] Pipeline 'egress': end
+[10:06:29.598] [bmv2] [D] [thread 666] [2.0] [cxt 0] Deparser 'deparser': start
+[10:06:29.598] [bmv2] [D] [thread 666] [2.0] [cxt 0] Deparser 'deparser': end
+[10:06:29.598] [bmv2] [D] [thread 670] [2.0] [cxt 0] Transmitting packet of size 20 out of port 0
+[10:06:33.789] [bmv2] [D] [thread 664] [3.0] [cxt 0] Processing packet received on port 1
+[10:06:33.789] [bmv2] [D] [thread 664] [3.0] [cxt 0] Parser 'parser': start
+[10:06:33.789] [bmv2] [D] [thread 664] [3.0] [cxt 0] Parser 'parser' entering state 'start'
+[10:06:33.789] [bmv2] [D] [thread 664] [3.0] [cxt 0] Extracting header 'ethernet'
+[10:06:33.789] [bmv2] [D] [thread 664] [3.0] [cxt 0] Parser state 'start': key is 0800
+[10:06:33.790] [bmv2] [T] [thread 664] [3.0] [cxt 0] Bytes parsed: 14
+[10:06:33.790] [bmv2] [D] [thread 664] [3.0] [cxt 0] Parser 'parser' entering state 'parse_ipv4'
+[10:06:33.790] [bmv2] [D] [thread 664] [3.0] [cxt 0] Extracting header 'ipv4'
+[10:06:33.790] [bmv2] [D] [thread 664] [3.0] [cxt 0] Parser state 'parse_ipv4': key is 06
+[10:06:33.790] [bmv2] [T] [thread 664] [3.0] [cxt 0] Bytes parsed: 34
+[10:06:33.790] [bmv2] [D] [thread 664] [3.0] [cxt 0] Parser 'parser' entering state 'parse_tcp'
+[10:06:33.790] [bmv2] [D] [thread 664] [3.0] [cxt 0] Extracting header 'tcp'
+[10:06:33.790] [bmv2] [D] [thread 664] [3.0] [cxt 0] Parser state 'parse_tcp' has no switch, going to default next state
+[10:06:33.790] [bmv2] [T] [thread 664] [3.0] [cxt 0] Bytes parsed: 54
+[10:06:33.790] [bmv2] [D] [thread 664] [3.0] [cxt 0] Parser 'parser': end
+[10:06:33.790] [bmv2] [D] [thread 664] [3.0] [cxt 0] Pipeline 'ingress': start
+[10:06:33.790] [bmv2] [D] [thread 664] [3.0] [cxt 0] Pipeline 'ingress': end
+[10:06:33.790] [bmv2] [D] [thread 664] [3.0] [cxt 0] Egress port is 0
+[10:06:33.790] [bmv2] [D] [thread 666] [3.0] [cxt 0] Pipeline 'egress': start
+[10:06:33.790] [bmv2] [D] [thread 666] [3.0] [cxt 0] Pipeline 'egress': end
+[10:06:33.790] [bmv2] [D] [thread 666] [3.0] [cxt 0] Deparser 'deparser': start
+[10:06:33.790] [bmv2] [D] [thread 666] [3.0] [cxt 0] Deparser 'deparser': end
+[10:06:33.790] [bmv2] [D] [thread 670] [3.0] [cxt 0] Transmitting packet of size 20 out of port 0
+[10:06:41.981] [bmv2] [D] [thread 664] [4.0] [cxt 0] Processing packet received on port 1
+[10:06:41.981] [bmv2] [D] [thread 664] [4.0] [cxt 0] Parser 'parser': start
+[10:06:41.981] [bmv2] [D] [thread 664] [4.0] [cxt 0] Parser 'parser' entering state 'start'
+[10:06:41.981] [bmv2] [D] [thread 664] [4.0] [cxt 0] Extracting header 'ethernet'
+[10:06:41.981] [bmv2] [D] [thread 664] [4.0] [cxt 0] Parser state 'start': key is 0800
+[10:06:41.981] [bmv2] [T] [thread 664] [4.0] [cxt 0] Bytes parsed: 14
+[10:06:41.981] [bmv2] [D] [thread 664] [4.0] [cxt 0] Parser 'parser' entering state 'parse_ipv4'
+[10:06:41.981] [bmv2] [D] [thread 664] [4.0] [cxt 0] Extracting header 'ipv4'
+[10:06:41.981] [bmv2] [D] [thread 664] [4.0] [cxt 0] Parser state 'parse_ipv4': key is 06
+[10:06:41.981] [bmv2] [T] [thread 664] [4.0] [cxt 0] Bytes parsed: 34
+[10:06:41.981] [bmv2] [D] [thread 664] [4.0] [cxt 0] Parser 'parser' entering state 'parse_tcp'
+[10:06:41.981] [bmv2] [D] [thread 664] [4.0] [cxt 0] Extracting header 'tcp'
+[10:06:41.981] [bmv2] [D] [thread 664] [4.0] [cxt 0] Parser state 'parse_tcp' has no switch, going to default next state
+[10:06:41.981] [bmv2] [T] [thread 664] [4.0] [cxt 0] Bytes parsed: 54
+[10:06:41.981] [bmv2] [D] [thread 664] [4.0] [cxt 0] Parser 'parser': end
+[10:06:41.981] [bmv2] [D] [thread 664] [4.0] [cxt 0] Pipeline 'ingress': start
+[10:06:41.981] [bmv2] [D] [thread 664] [4.0] [cxt 0] Pipeline 'ingress': end
+[10:06:41.981] [bmv2] [D] [thread 664] [4.0] [cxt 0] Egress port is 0
+[10:06:41.981] [bmv2] [D] [thread 666] [4.0] [cxt 0] Pipeline 'egress': start
+[10:06:41.981] [bmv2] [D] [thread 666] [4.0] [cxt 0] Pipeline 'egress': end
+[10:06:41.981] [bmv2] [D] [thread 666] [4.0] [cxt 0] Deparser 'deparser': start
+[10:06:41.981] [bmv2] [D] [thread 666] [4.0] [cxt 0] Deparser 'deparser': end
+[10:06:41.981] [bmv2] [D] [thread 670] [4.0] [cxt 0] Transmitting packet of size 20 out of port 0
+[10:06:58.110] [bmv2] [D] [thread 664] [5.0] [cxt 0] Processing packet received on port 1
+[10:06:58.110] [bmv2] [D] [thread 664] [5.0] [cxt 0] Parser 'parser': start
+[10:06:58.110] [bmv2] [D] [thread 664] [5.0] [cxt 0] Parser 'parser' entering state 'start'
+[10:06:58.110] [bmv2] [D] [thread 664] [5.0] [cxt 0] Extracting header 'ethernet'
+[10:06:58.110] [bmv2] [D] [thread 664] [5.0] [cxt 0] Parser state 'start': key is 0800
+[10:06:58.110] [bmv2] [T] [thread 664] [5.0] [cxt 0] Bytes parsed: 14
+[10:06:58.110] [bmv2] [D] [thread 664] [5.0] [cxt 0] Parser 'parser' entering state 'parse_ipv4'
+[10:06:58.110] [bmv2] [D] [thread 664] [5.0] [cxt 0] Extracting header 'ipv4'
+[10:06:58.110] [bmv2] [D] [thread 664] [5.0] [cxt 0] Parser state 'parse_ipv4': key is 06
+[10:06:58.110] [bmv2] [T] [thread 664] [5.0] [cxt 0] Bytes parsed: 34
+[10:06:58.110] [bmv2] [D] [thread 664] [5.0] [cxt 0] Parser 'parser' entering state 'parse_tcp'
+[10:06:58.110] [bmv2] [D] [thread 664] [5.0] [cxt 0] Extracting header 'tcp'
+[10:06:58.110] [bmv2] [D] [thread 664] [5.0] [cxt 0] Parser state 'parse_tcp' has no switch, going to default next state
+[10:06:58.110] [bmv2] [T] [thread 664] [5.0] [cxt 0] Bytes parsed: 54
+[10:06:58.110] [bmv2] [D] [thread 664] [5.0] [cxt 0] Parser 'parser': end
+[10:06:58.110] [bmv2] [D] [thread 664] [5.0] [cxt 0] Pipeline 'ingress': start
+[10:06:58.110] [bmv2] [D] [thread 664] [5.0] [cxt 0] Pipeline 'ingress': end
+[10:06:58.110] [bmv2] [D] [thread 664] [5.0] [cxt 0] Egress port is 0
+[10:06:58.110] [bmv2] [D] [thread 666] [5.0] [cxt 0] Pipeline 'egress': start
+[10:06:58.110] [bmv2] [D] [thread 666] [5.0] [cxt 0] Pipeline 'egress': end
+[10:06:58.110] [bmv2] [D] [thread 666] [5.0] [cxt 0] Deparser 'deparser': start
+[10:06:58.110] [bmv2] [D] [thread 666] [5.0] [cxt 0] Deparser 'deparser': end
+[10:06:58.111] [bmv2] [D] [thread 670] [5.0] [cxt 0] Transmitting packet of size 20 out of port 0
+[10:07:30.366] [bmv2] [D] [thread 664] [6.0] [cxt 0] Processing packet received on port 1
+[10:07:30.366] [bmv2] [D] [thread 664] [6.0] [cxt 0] Parser 'parser': start
+[10:07:30.366] [bmv2] [D] [thread 664] [6.0] [cxt 0] Parser 'parser' entering state 'start'
+[10:07:30.366] [bmv2] [D] [thread 664] [6.0] [cxt 0] Extracting header 'ethernet'
+[10:07:30.366] [bmv2] [D] [thread 664] [6.0] [cxt 0] Parser state 'start': key is 0800
+[10:07:30.366] [bmv2] [T] [thread 664] [6.0] [cxt 0] Bytes parsed: 14
+[10:07:30.366] [bmv2] [D] [thread 664] [6.0] [cxt 0] Parser 'parser' entering state 'parse_ipv4'
+[10:07:30.366] [bmv2] [D] [thread 664] [6.0] [cxt 0] Extracting header 'ipv4'
+[10:07:30.366] [bmv2] [D] [thread 664] [6.0] [cxt 0] Parser state 'parse_ipv4': key is 06
+[10:07:30.366] [bmv2] [T] [thread 664] [6.0] [cxt 0] Bytes parsed: 34
+[10:07:30.366] [bmv2] [D] [thread 664] [6.0] [cxt 0] Parser 'parser' entering state 'parse_tcp'
+[10:07:30.366] [bmv2] [D] [thread 664] [6.0] [cxt 0] Extracting header 'tcp'
+[10:07:30.366] [bmv2] [D] [thread 664] [6.0] [cxt 0] Parser state 'parse_tcp' has no switch, going to default next state
+[10:07:30.366] [bmv2] [T] [thread 664] [6.0] [cxt 0] Bytes parsed: 54
+[10:07:30.366] [bmv2] [D] [thread 664] [6.0] [cxt 0] Parser 'parser': end
+[10:07:30.366] [bmv2] [D] [thread 664] [6.0] [cxt 0] Pipeline 'ingress': start
+[10:07:30.366] [bmv2] [D] [thread 664] [6.0] [cxt 0] Pipeline 'ingress': end
+[10:07:30.366] [bmv2] [D] [thread 664] [6.0] [cxt 0] Egress port is 0
+[10:07:30.366] [bmv2] [D] [thread 666] [6.0] [cxt 0] Pipeline 'egress': start
+[10:07:30.366] [bmv2] [D] [thread 666] [6.0] [cxt 0] Pipeline 'egress': end
+[10:07:30.366] [bmv2] [D] [thread 666] [6.0] [cxt 0] Deparser 'deparser': start
+[10:07:30.366] [bmv2] [D] [thread 666] [6.0] [cxt 0] Deparser 'deparser': end
+[10:07:30.366] [bmv2] [D] [thread 670] [6.0] [cxt 0] Transmitting packet of size 20 out of port 0
+open: No such file or directory
+open: No such file or directory
+open: No such file or directory
+open: No such file or directory

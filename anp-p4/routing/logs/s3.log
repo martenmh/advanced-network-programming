@@ -1,0 +1,17 @@
+Calling target program-options parser
+Adding interface s3-eth1 as port 1
+[10:05:25.579] [bmv2] [D] [thread 697] Adding interface s3-eth1 as port 1
+Adding interface s3-eth2 as port 2
+[10:05:25.634] [bmv2] [D] [thread 697] Adding interface s3-eth2 as port 2
+Server listening on 0.0.0.0:50053
+[10:05:25.655] [bmv2] [I] [thread 697] Starting Thrift server on port 9092
+[10:05:25.655] [bmv2] [I] [thread 697] Thrift server was started
+New connection
+P4Runtime SetForwardingPipelineConfig
+[10:05:27.183] [bmv2] [W] [thread 765] [P4Runtime] p4::tmp::P4DeviceConfig is deprecated
+[10:05:27.186] [bmv2] [D] [thread 765] simple_switch target has been notified of a config swap
+open: No such file or directory
+open: No such file or directory
+open: No such file or directory
+open: No such file or directory
+open: No such file or directory

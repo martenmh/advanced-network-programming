@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="anpnetstack"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/lemonpartysoul/GitHub/advanced-network-programming"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/strip">
+				<Option working_dir="/home/lemonpartysoul/GitHub/advanced-network-programming"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 install/strip"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/local">
+				<Option working_dir="/home/lemonpartysoul/GitHub/advanced-network-programming"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 install/local"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install">
+				<Option working_dir="/home/lemonpartysoul/GitHub/advanced-network-programming"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 install"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="list_install_components">
+				<Option working_dir="/home/lemonpartysoul/GitHub/advanced-network-programming"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 list_install_components"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/lemonpartysoul/GitHub/advanced-network-programming"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="anpnetstack">
+				<Option output="/home/lemonpartysoul/GitHub/advanced-network-programming/lib/libanpnetstack.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/lemonpartysoul/GitHub/advanced-network-programming"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/lemonpartysoul/GitHub/advanced-network-programming/src"/>
+					<Add directory="/home/lemonpartysoul/GitHub/advanced-network-programming/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 anpnetstack"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="anpnetstack/fast">
+				<Option output="/home/lemonpartysoul/GitHub/advanced-network-programming/lib/libanpnetstack.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/lemonpartysoul/GitHub/advanced-network-programming"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/lemonpartysoul/GitHub/advanced-network-programming/src"/>
+					<Add directory="/home/lemonpartysoul/GitHub/advanced-network-programming/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 anpnetstack/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="anp_server">
+				<Option output="/home/lemonpartysoul/GitHub/advanced-network-programming/build/anp_server" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/lemonpartysoul/GitHub/advanced-network-programming/build/"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 anp_server"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="anp_server/fast">
+				<Option output="/home/lemonpartysoul/GitHub/advanced-network-programming/build/anp_server" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/lemonpartysoul/GitHub/advanced-network-programming/build/"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 anp_server/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/lemonpartysoul/GitHub/advanced-network-programming"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="anp_client">
+				<Option output="/home/lemonpartysoul/GitHub/advanced-network-programming/build/anp_client" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/lemonpartysoul/GitHub/advanced-network-programming/build/"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 anp_client"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="anp_client/fast">
+				<Option output="/home/lemonpartysoul/GitHub/advanced-network-programming/build/anp_client" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/lemonpartysoul/GitHub/advanced-network-programming/build/"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 anp_client/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/lemonpartysoul/GitHub/advanced-network-programming/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/server-client/common.c">
+			<Option target="anp_server"/>
+			<Option target="anp_client"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/server-client/common.h">
+			<Option target="anp_server"/>
+			<Option target="anp_client"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/server-client/tcp_client.c">
+			<Option target="anp_client"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/server-client/tcp_server.c">
+			<Option target="anp_server"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/anp_netdev.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/anp_netdev.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/anpwrapper.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/anpwrapper.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/arp.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/arp.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/icmp.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/icmp.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/init.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/init.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/ip_rx.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/ip_tx.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/route.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/route.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/subuff.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/subuff.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/tap_netdev.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/tap_netdev.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/tcp.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/tcp.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/timer.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/timer.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/utilities.c">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/src/utilities.h">
+			<Option target="anpnetstack"/>
+		</Unit>
+		<Unit filename="/home/lemonpartysoul/GitHub/advanced-network-programming/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
