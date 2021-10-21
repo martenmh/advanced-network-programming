@@ -7,7 +7,7 @@
       "table": "MyIngress.ipv4_lpm",
       "default_action": true,
       "action_name": "MyIngress.drop",
-      "action_params": { }
+      "action_params": {}
     },
     {
       "table": "MyIngress.ipv4_lpm",
@@ -31,16 +31,11 @@
         "port": 3
       }
     },
-
-
-
-
-
     {
       "table": "MyIngress.tcp_ack_exact",
       "default_action": true,
       "action_name": "MyIngress.drop",
-      "action_params": { }
+      "action_params": {}
     },
     {
       "table": "MyIngress.tcp_ack_exact",
@@ -64,6 +59,5 @@
         "port": 2
       }
     }
-
   ]
 }

@@ -40,7 +40,6 @@ void push_tcp_sub(struct anp_socket_entry* entry, struct subuff* sub, enum TCP_S
   recv_entry->buffer = malloc(recv_entry->length);
 
   async_printf("Reading entry with length of: %zu \n", recv_entry->length);
-  //wireshark_print(TCP_PAYLOAD_FROM_SUB(sub), TCP_PAYLOAD_LEN(sub));
 
   memcpy(recv_entry->buffer, TCP_HDR_FROM_SUB(sub), recv_entry->length);
   async_printf("Copied! \n");
