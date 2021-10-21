@@ -49,7 +49,7 @@ const char * match_pattern(const unsigned char *buf, int size){
 
             printf("wrong pattern here ? returning %s , index %d buf 0x%x patt 0x%x \n", " <_DO_NOT match> ", i, buf[i], ((start + i) & 0xFFu));
             return " < _DO_NOT match > ";
-        }
+        };
     }
     return " < OK, matched > ";
 }

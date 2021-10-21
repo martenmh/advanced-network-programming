@@ -99,6 +99,7 @@ struct tcp_sock_state {
 };
 
 struct recv_packet_entry {
+    enum TCP_STATE intended_state;
     struct list_head list;
     // identification
     uint32_t rx_seq_num;
@@ -125,6 +126,10 @@ int tcp_output(uint32_t dst_addr, struct subuff *sub);
 int validate_csum(struct tcphdr *hdr, uint32_t src_addr, uint32_t dst_addr);
 uint8_t *sub_pop(struct subuff *sub, unsigned int len);
 
+struct anp_socket_entry;
+void push_tcp_sub(struct anp_socket_entry* entry, struct subuff* sub, enum TCP_STATE intended_state);
+struct recv_packet_entry* get_tcp_sub(int sockfd, enum TCP_STATE intended_state);
+void pop_tcp_sub(int sockfd, enum TCP_STATE intended_state);
 
 // useful macros and constants
 #define TCP_HDR_FROM_SUB(_sub) (struct tcphdr *)((_sub)->head + IP_HDR_LEN + ETH_HDR_LEN)

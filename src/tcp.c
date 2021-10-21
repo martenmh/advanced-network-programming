@@ -22,6 +22,79 @@
 LIST_HEAD(recv_packets);
 uint32_t recv_packets_size = 0;
 
+void push_tcp_sub(struct anp_socket_entry* entry, struct subuff* sub, enum TCP_STATE intended_state){
+  pthread_mutex_lock(&recv_packets_mut);
+
+  async_printf("allocating recv_entry \n");
+  struct recv_packet_entry *recv_entry = calloc(1, sizeof(struct recv_packet_entry));
+  list_init(&recv_entry->list);
+  struct tcphdr* hdr = TCP_HDR_FROM_SUB(sub);
+  recv_entry->intended_state = intended_state;
+  recv_entry->rx_seq_num = hdr->seq_num;
+  recv_entry->sockfd = entry->sockfd;
+
+  recv_entry->length = hdr->data_offset * 4 + TCP_PAYLOAD_LEN(sub);
+  // allocate a buffer and copy payload into it
+
+  //recv_entry->buffer = calloc(1, recv_entry->length);
+  recv_entry->buffer = malloc(recv_entry->length);
+
+  async_printf("Reading entry with length of: %zu \n", recv_entry->length);
+  //wireshark_print(TCP_PAYLOAD_FROM_SUB(sub), TCP_PAYLOAD_LEN(sub));
+
+  memcpy(recv_entry->buffer, TCP_HDR_FROM_SUB(sub), recv_entry->length);
+  async_printf("Copied! \n");
+  list_add_tail(&recv_entry->list, &recv_packets);
+
+  async_printf("Received TCP packet designated for recv() \n");
+
+  pthread_mutex_unlock(&entry->tcp_state_mut);
+}
+
+struct recv_packet_entry* get_tcp_sub(int sockfd, enum TCP_STATE intended_state){
+  struct list_head *item;
+  struct recv_packet_entry *entry;
+
+  pthread_mutex_lock(&recv_packets_mut);
+
+  list_for_each(item, &recv_packets) {
+    entry = list_entry(item, struct recv_packet_entry, list);
+    if (entry->sockfd != sockfd)
+      continue;
+    if(entry->intended_state != intended_state)
+      continue;
+
+
+    pthread_mutex_unlock(&recv_packets_mut);
+    return entry;
+  }
+  pthread_mutex_unlock(&recv_packets_mut);
+  return NULL;
+}
+
+void pop_tcp_sub(int sockfd, enum TCP_STATE intended_state){
+  struct list_head *item;
+  struct recv_packet_entry *entry;
+
+  pthread_mutex_lock(&recv_packets_mut);
+
+  list_for_each(item, &recv_packets) {
+    entry = list_entry(item, struct recv_packet_entry, list);
+    if (entry->sockfd != sockfd)
+      continue;
+    if(entry->intended_state != intended_state)
+      continue;
+
+    if(entry->buffer){
+      free(entry->buffer);
+    }
+    list_del(item);
+    break;
+  }
+  pthread_mutex_unlock(&recv_packets_mut);
+
+}
+
 bool tcp_headers_related(struct tcphdr *tx_hdr, struct tcphdr *rx_hdr) {
     return (ntohl(tx_hdr->seq_num) + 1 == ntohl(rx_hdr->ack_num) && // received sequence number should be seq_num + 1
             tx_hdr->src_port == rx_hdr->dst_port && // received destination port should be our source
@@ -61,8 +134,13 @@ int tcp_rx(struct subuff *sub) {
         switch (tcp_state) {
             case SYN_SENT:
                 if (hdr->ack == 1 && hdr->syn == 1) {
-                    async_printf("\nIncoming TCP SYN-ACK \n");
+
+                    async_printf("Received TCP SYN-ACK \n");
                     async_printf("Validating checksum..... \n");
+
+
+                    push_tcp_sub(entry, sub, SYN_SENT);
+
                     // validate checksum of the incoming packet
                     //int err = validate_csum(hdr, entry->src_addr, entry->dst_addr);
                     int err = 0;
@@ -91,31 +169,9 @@ int tcp_rx(struct subuff *sub) {
             case ESTABLISHED:
                 // although the implementation isn't great as we're copying the entire payload..
                 // it seems to be the only way the implementation stays correct
+                push_tcp_sub(entry, sub, ESTABLISHED);
                 // create a recv_packets entry
-                async_printf("allocating recv_entry \n");
-                struct recv_packet_entry *recv_entry = calloc(1, sizeof(struct recv_packet_entry));
-                list_init(&recv_entry->list);
-                recv_entry->rx_seq_num = (TCP_HDR_FROM_SUB(sub))->seq_num;
-                recv_entry->rx_ack_num = (TCP_HDR_FROM_SUB(sub))->ack_num;
-                recv_entry->sockfd = entry->sockfd;
 
-                recv_entry->length = TCP_PAYLOAD_LEN(sub);
-                // allocate a buffer and copy payload into it
-
-                //recv_entry->buffer = calloc(1, recv_entry->length);
-                recv_entry->buffer = malloc(recv_entry->length);
-                async_printf("Reading entry with length of: %zu \n", recv_entry->length);
-                wireshark_print(TCP_PAYLOAD_FROM_SUB(sub), TCP_PAYLOAD_LEN(sub));
-
-                memcpy(recv_entry->buffer, TCP_PAYLOAD_FROM_SUB(sub), recv_entry->length);
-                async_printf("Copied! \n");
-
-                pthread_mutex_lock(&recv_packets_mut);
-                list_add_tail(&recv_entry->list, &recv_packets);
-                pthread_mutex_unlock(&recv_packets_mut);
-
-                async_printf("Received TCP packet designated for recv() \n");
-                pthread_mutex_lock(&entry->tcp_state_mut);
                 entry->tcp_state.rx_sub = sub;
                 async_printf("copied entry, signalling now! \n");
                 // signal waiting recv() call
