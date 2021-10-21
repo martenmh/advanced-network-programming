@@ -29,7 +29,7 @@
       ]
     },
     {
-      "name" : "ethernet_t",
+      "name" : "ethernet_h",
       "id" : 2,
       "fields" : [
         ["dstAddr", 48, false],
@@ -54,6 +54,29 @@
         ["srcAddr", 32, false],
         ["dstAddr", 32, false]
       ]
+    },
+    {
+      "name" : "tcp_t",
+      "id" : 4,
+      "fields" : [
+        ["srcPort", 16, false],
+        ["dstPort", 16, false],
+        ["seqNo", 32, false],
+        ["ackNo", 32, false],
+        ["dataOffset", 4, false],
+        ["res", 4, false],
+        ["cwr", 1, false],
+        ["ece", 1, false],
+        ["urg", 1, false],
+        ["ack", 1, false],
+        ["psh", 1, false],
+        ["rst", 1, false],
+        ["syn", 1, false],
+        ["fin", 1, false],
+        ["window", 16, false],
+        ["checksum", 16, false],
+        ["urgentPtr", 16, false]
+      ]
     }
   ],
   "headers" : [
@@ -74,7 +97,7 @@
     {
       "name" : "ethernet",
       "id" : 2,
-      "header_type" : "ethernet_t",
+      "header_type" : "ethernet_h",
       "metadata" : false,
       "pi_omit" : true
     },
@@ -82,6 +105,13 @@
       "name" : "ipv4",
       "id" : 3,
       "header_type" : "ipv4_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "tcp",
+      "id" : 4,
+      "header_type" : "tcp_t",
       "metadata" : false,
       "pi_omit" : true
     }
@@ -158,6 +188,41 @@
           ],
           "transitions" : [
             {
+              "type" : "hexstr",
+              "value" : "0x06",
+              "mask" : null,
+              "next_state" : "parse_tcp"
+            },
+            {
+              "type" : "default",
+              "value" : null,
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : [
+            {
+              "type" : "field",
+              "value" : ["ipv4", "protocol"]
+            }
+          ]
+        },
+        {
+          "name" : "parse_tcp",
+          "id" : 2,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "tcp"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
               "type" : "default",
               "value" : null,
               "mask" : null,
@@ -176,11 +241,11 @@
       "id" : 0,
       "source_info" : {
         "filename" : "routing.p4",
-        "line" : 177,
+        "line" : 237,
         "column" : 8,
         "source_fragment" : "MyDeparser"
       },
-      "order" : ["ethernet", "ipv4"],
+      "order" : ["ethernet", "ipv4", "tcp"],
       "primitives" : []
     }
   ],
@@ -193,7 +258,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "routing.p4",
-        "line" : 155,
+        "line" : 215,
         "column" : 4,
         "source_fragment" : "update_checksum( ..."
       },
@@ -255,8 +320,14 @@
       "primitives" : []
     },
     {
-      "name" : "MyIngress.drop",
+      "name" : "NoAction",
       "id" : 1,
+      "runtime_data" : [],
+      "primitives" : []
+    },
+    {
+      "name" : "MyIngress.drop",
+      "id" : 2,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -269,7 +340,29 @@
           ],
           "source_info" : {
             "filename" : "routing.p4",
-            "line" : 109,
+            "line" : 143,
+            "column" : 4,
+            "source_fragment" : "mark_to_drop(standard_metadata)"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "MyIngress.drop",
+      "id" : 3,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "mark_to_drop",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "standard_metadata"
+            }
+          ],
+          "source_info" : {
+            "filename" : "routing.p4",
+            "line" : 143,
             "column" : 4,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           }
@@ -278,7 +371,7 @@
     },
     {
       "name" : "MyIngress.ipv4_forward",
-      "id" : 2,
+      "id" : 4,
       "runtime_data" : [
         {
           "name" : "dstAddr",
@@ -304,7 +397,7 @@
           ],
           "source_info" : {
             "filename" : "routing.p4",
-            "line" : 113,
+            "line" : 148,
             "column" : 4,
             "source_fragment" : "standard_metadata.egress_spec = port"
           }
@@ -323,7 +416,7 @@
           ],
           "source_info" : {
             "filename" : "routing.p4",
-            "line" : 114,
+            "line" : 149,
             "column" : 4,
             "source_fragment" : "hdr.ethernet.srcAddr = hdr.ethernet.dstAddr"
           }
@@ -342,7 +435,7 @@
           ],
           "source_info" : {
             "filename" : "routing.p4",
-            "line" : 115,
+            "line" : 150,
             "column" : 4,
             "source_fragment" : "hdr.ethernet.dstAddr = dstAddr"
           }
@@ -384,7 +477,122 @@
           ],
           "source_info" : {
             "filename" : "routing.p4",
-            "line" : 116,
+            "line" : 151,
+            "column" : 4,
+            "source_fragment" : "hdr.ipv4.ttl = hdr.ipv4.ttl - 1"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "MyIngress.tcp_ack_forward",
+      "id" : 5,
+      "runtime_data" : [
+        {
+          "name" : "dstAddr",
+          "bitwidth" : 48
+        },
+        {
+          "name" : "port",
+          "bitwidth" : 9
+        }
+      ],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_spec"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 1
+            }
+          ],
+          "source_info" : {
+            "filename" : "routing.p4",
+            "line" : 148,
+            "column" : 4,
+            "source_fragment" : "standard_metadata.egress_spec = port; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "srcAddr"]
+            },
+            {
+              "type" : "field",
+              "value" : ["ethernet", "dstAddr"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "routing.p4",
+            "line" : 149,
+            "column" : 4,
+            "source_fragment" : "hdr.ethernet.srcAddr = hdr.ethernet.dstAddr"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "dstAddr"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 0
+            }
+          ],
+          "source_info" : {
+            "filename" : "routing.p4",
+            "line" : 150,
+            "column" : 4,
+            "source_fragment" : "hdr.ethernet.dstAddr = dstAddr; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ipv4", "ttl"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "+",
+                      "left" : {
+                        "type" : "field",
+                        "value" : ["ipv4", "ttl"]
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0xff"
+                      }
+                    }
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xff"
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "routing.p4",
+            "line" : 151,
             "column" : 4,
             "source_fragment" : "hdr.ipv4.ttl = hdr.ipv4.ttl - 1"
           }
@@ -398,18 +606,56 @@
       "id" : 0,
       "source_info" : {
         "filename" : "routing.p4",
-        "line" : 105,
+        "line" : 139,
         "column" : 8,
         "source_fragment" : "MyIngress"
       },
       "init_table" : "node_2",
       "tables" : [
         {
-          "name" : "MyIngress.ipv4_lpm",
+          "name" : "MyIngress.tcp_ack_exact",
           "id" : 0,
           "source_info" : {
             "filename" : "routing.p4",
-            "line" : 119,
+            "line" : 175,
+            "column" : 8,
+            "source_fragment" : "tcp_ack_exact"
+          },
+          "key" : [
+            {
+              "match_type" : "lpm",
+              "name" : "hdr.ipv4.dstAddr",
+              "target" : ["ipv4", "dstAddr"],
+              "mask" : null
+            }
+          ],
+          "match_type" : "lpm",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [5, 3, 1],
+          "actions" : ["MyIngress.tcp_ack_forward", "MyIngress.drop", "NoAction"],
+          "base_default_next" : null,
+          "next_tables" : {
+            "MyIngress.tcp_ack_forward" : null,
+            "MyIngress.drop" : null,
+            "NoAction" : null
+          },
+          "default_entry" : {
+            "action_id" : 3,
+            "action_const" : false,
+            "action_data" : [],
+            "action_entry_const" : false
+          }
+        },
+        {
+          "name" : "MyIngress.ipv4_lpm",
+          "id" : 1,
+          "source_info" : {
+            "filename" : "routing.p4",
+            "line" : 160,
             "column" : 8,
             "source_fragment" : "ipv4_lpm"
           },
@@ -427,7 +673,7 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [2, 1, 0],
+          "action_ids" : [4, 2, 0],
           "actions" : ["MyIngress.ipv4_forward", "MyIngress.drop", "NoAction"],
           "base_default_next" : null,
           "next_tables" : {
@@ -436,7 +682,7 @@
             "NoAction" : null
           },
           "default_entry" : {
-            "action_id" : 1,
+            "action_id" : 2,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -450,8 +696,51 @@
           "id" : 0,
           "source_info" : {
             "filename" : "routing.p4",
-            "line" : 133,
-            "column" : 6,
+            "line" : 190,
+            "column" : 8,
+            "source_fragment" : "hdr.tcp.isValid() && hdr.tcp.ack == 1"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "and",
+              "left" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "d2b",
+                  "left" : null,
+                  "right" : {
+                    "type" : "field",
+                    "value" : ["tcp", "$valid$"]
+                  }
+                }
+              },
+              "right" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "==",
+                  "left" : {
+                    "type" : "field",
+                    "value" : ["tcp", "ack"]
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0x01"
+                  }
+                }
+              }
+            }
+          },
+          "true_next" : "MyIngress.tcp_ack_exact",
+          "false_next" : "node_4"
+        },
+        {
+          "name" : "node_4",
+          "id" : 1,
+          "source_info" : {
+            "filename" : "routing.p4",
+            "line" : 193,
+            "column" : 15,
             "source_fragment" : "hdr.ipv4.isValid()"
           },
           "expression" : {
@@ -475,7 +764,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "routing.p4",
-        "line" : 143,
+        "line" : 203,
         "column" : 8,
         "source_fragment" : "MyEgress"
       },
@@ -491,7 +780,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "routing.p4",
-        "line" : 155,
+        "line" : 215,
         "column" : 4,
         "source_fragment" : "update_checksum( ..."
       },
