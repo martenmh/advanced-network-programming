@@ -18,7 +18,7 @@
 #include <v1model.p4>
 
 const bit<16> TYPE_IPV4 = 0x800;
-
+register<bit<32>>(1) loss_counter;
 /*************************************************************************
 *********************** H E A D E R S  ***********************************
 *************************************************************************/
@@ -199,11 +199,24 @@ control MyIngress(inout headers hdr,
 /*************************************************************************
 ****************  E G R E S S   P R O C E S S I N G   *******************
 *************************************************************************/
-
 control MyEgress(inout headers hdr,
                  inout metadata meta,
                  inout standard_metadata_t standard_metadata) {
-  apply {  }
+  action drop() {
+    mark_to_drop(standard_metadata);
+  }
+  bit<32> current_loss_count;
+  const bit<32> index = 0;
+  apply {
+    loss_counter.read(current_loss_count, index);
+    if(current_loss_count == 3){
+      drop();
+      current_loss_count = 0;
+    } else {
+      current_loss_count = current_loss_count + 1;
+    }
+    loss_counter.write(current_loss_count, index);
+  }
 }
 
 /*************************************************************************

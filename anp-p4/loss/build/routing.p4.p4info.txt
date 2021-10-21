@@ -59,7 +59,7 @@ actions {
   preamble {
     id: 25652968
     name: "MyIngress.drop"
-    alias: "drop"
+    alias: "MyIngress.drop"
   }
 }
 actions {
@@ -95,6 +95,28 @@ actions {
     name: "port"
     bitwidth: 9
   }
+}
+actions {
+  preamble {
+    id: 20880156
+    name: "MyEgress.drop"
+    alias: "MyEgress.drop"
+  }
+}
+registers {
+  preamble {
+    id: 374180056
+    name: "loss_counter"
+    alias: "loss_counter"
+  }
+  type_spec {
+    bitstring {
+      bit {
+        bitwidth: 32
+      }
+    }
+  }
+  size: 1
 }
 type_info {
 }
