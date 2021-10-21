@@ -1,21 +1,21 @@
 Calling target program-options parser
-[12:15:24.100] [bmv2] [D] [thread 29287] Set default default entry for table 'MyIngress.tcp_ack_exact': MyIngress.drop - 
-[12:15:24.100] [bmv2] [D] [thread 29287] Set default default entry for table 'MyIngress.ipv4_lpm': MyIngress.drop - 
+[15:38:02.651] [bmv2] [D] [thread 8166] Set default default entry for table 'MyIngress.tcp_ack_exact': MyIngress.drop - 
+[15:38:02.652] [bmv2] [D] [thread 8166] Set default default entry for table 'MyIngress.ipv4_lpm': MyIngress.drop - 
 Adding interface s1-eth1 as port 1
-[12:15:24.100] [bmv2] [D] [thread 29287] Adding interface s1-eth1 as port 1
+[15:38:02.652] [bmv2] [D] [thread 8166] Adding interface s1-eth1 as port 1
 Adding interface s1-eth2 as port 2
-[12:15:24.150] [bmv2] [D] [thread 29287] Adding interface s1-eth2 as port 2
+[15:38:02.678] [bmv2] [D] [thread 8166] Adding interface s1-eth2 as port 2
 Adding interface s1-eth3 as port 3
-[12:15:24.206] [bmv2] [D] [thread 29287] Adding interface s1-eth3 as port 3
+[15:38:02.699] [bmv2] [D] [thread 8166] Adding interface s1-eth3 as port 3
 Server listening on 0.0.0.0:50051
-[12:15:24.265] [bmv2] [I] [thread 29287] Starting Thrift server on port 9090
-[12:15:24.266] [bmv2] [I] [thread 29287] Thrift server was started
+[15:38:02.765] [bmv2] [I] [thread 8166] Starting Thrift server on port 9090
+[15:38:02.766] [bmv2] [I] [thread 8166] Thrift server was started
 New connection
 P4Runtime SetForwardingPipelineConfig
-[12:15:26.914] [bmv2] [W] [thread 29396] [P4Runtime] p4::tmp::P4DeviceConfig is deprecated
-[12:15:26.915] [bmv2] [D] [thread 29396] Set default default entry for table 'MyIngress.tcp_ack_exact': MyIngress.drop - 
-[12:15:26.915] [bmv2] [D] [thread 29396] Set default default entry for table 'MyIngress.ipv4_lpm': MyIngress.drop - 
-[12:15:26.915] [bmv2] [D] [thread 29396] simple_switch target has been notified of a config swap
+[15:38:05.371] [bmv2] [W] [thread 8291] [P4Runtime] p4::tmp::P4DeviceConfig is deprecated
+[15:38:05.372] [bmv2] [D] [thread 8291] Set default default entry for table 'MyIngress.tcp_ack_exact': MyIngress.drop - 
+[15:38:05.372] [bmv2] [D] [thread 8291] Set default default entry for table 'MyIngress.ipv4_lpm': MyIngress.drop - 
+[15:38:05.372] [bmv2] [D] [thread 8291] simple_switch target has been notified of a config swap
 P4Runtime Write
 election_id {
   low: 1
@@ -34,7 +34,7 @@ updates {
     }
   }
 }
-[12:15:26.918] [bmv2] [D] [thread 29397] Set default entry for table 'MyIngress.ipv4_lpm': MyIngress.drop - 
+[15:38:05.374] [bmv2] [D] [thread 8292] Set default entry for table 'MyIngress.ipv4_lpm': MyIngress.drop - 
 P4Runtime Write
 election_id {
   low: 1
@@ -67,8 +67,8 @@ updates {
     }
   }
 }
-[12:15:26.919] [bmv2] [D] [thread 29396] Entry 0 added to table 'MyIngress.ipv4_lpm'
-[12:15:26.919] [bmv2] [D] [thread 29396] Dumping entry 0
+[15:38:05.375] [bmv2] [D] [thread 8291] Entry 0 added to table 'MyIngress.ipv4_lpm'
+[15:38:05.375] [bmv2] [D] [thread 8291] Dumping entry 0
 Match key:
 * hdr.ipv4.dstAddr    : LPM       0a000101/32
 Action entry: MyIngress.ipv4_forward - 80000000111,1,
@@ -105,8 +105,8 @@ updates {
     }
   }
 }
-[12:15:26.920] [bmv2] [D] [thread 29397] Entry 1 added to table 'MyIngress.ipv4_lpm'
-[12:15:26.920] [bmv2] [D] [thread 29397] Dumping entry 1
+[15:38:05.376] [bmv2] [D] [thread 8292] Entry 1 added to table 'MyIngress.ipv4_lpm'
+[15:38:05.376] [bmv2] [D] [thread 8292] Dumping entry 1
 Match key:
 * hdr.ipv4.dstAddr    : LPM       0a000202/32
 Action entry: MyIngress.ipv4_forward - 80000000200,2,
@@ -129,7 +129,7 @@ updates {
     }
   }
 }
-[12:15:26.921] [bmv2] [D] [thread 29396] Set default entry for table 'MyIngress.tcp_ack_exact': MyIngress.drop - 
+[15:38:05.377] [bmv2] [D] [thread 8291] Set default entry for table 'MyIngress.tcp_ack_exact': MyIngress.drop - 
 P4Runtime Write
 election_id {
   low: 1
@@ -162,8 +162,8 @@ updates {
     }
   }
 }
-[12:15:26.922] [bmv2] [D] [thread 29397] Entry 0 added to table 'MyIngress.tcp_ack_exact'
-[12:15:26.922] [bmv2] [D] [thread 29397] Dumping entry 0
+[15:38:05.378] [bmv2] [D] [thread 8292] Entry 0 added to table 'MyIngress.tcp_ack_exact'
+[15:38:05.378] [bmv2] [D] [thread 8292] Dumping entry 0
 Match key:
 * hdr.ipv4.dstAddr    : LPM       0a000101/32
 Action entry: MyIngress.tcp_ack_forward - 80000000111,1,
@@ -200,12 +200,9 @@ updates {
     }
   }
 }
-[12:15:26.923] [bmv2] [D] [thread 29396] Entry 1 added to table 'MyIngress.tcp_ack_exact'
-[12:15:26.923] [bmv2] [D] [thread 29396] Dumping entry 1
+[15:38:05.379] [bmv2] [D] [thread 8291] Entry 1 added to table 'MyIngress.tcp_ack_exact'
+[15:38:05.379] [bmv2] [D] [thread 8291] Dumping entry 1
 Match key:
 * hdr.ipv4.dstAddr    : LPM       0a000202/32
 Action entry: MyIngress.tcp_ack_forward - 80000000200,3,
 
-open: No such file or directory
-open: No such file or directory
-open: No such file or directory

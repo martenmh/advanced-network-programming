@@ -160,6 +160,10 @@ control MyIngress(inout headers hdr,
       standard_metadata.mcast_grp = mcast_grp;
   }
 
+  action forward(macAddr_t dstAddr, egressSpec_t port) {
+      ipv4_forward(dstAddr, port);
+  }
+
   // IPv4 table
   table ipv4_lpm {
     key = {
@@ -195,6 +199,7 @@ control MyIngress(inout headers hdr,
             }
             actions = {
                 multicast_forward;
+                forward;
                 drop;
                 NoAction;
             }

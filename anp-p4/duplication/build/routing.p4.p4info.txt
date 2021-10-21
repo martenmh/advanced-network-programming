@@ -63,6 +63,9 @@ tables {
     id: 17240535
   }
   action_refs {
+    id: 29683729
+  }
+  action_refs {
     id: 25652968
   }
   action_refs {
@@ -129,6 +132,23 @@ actions {
     id: 1
     name: "mcast_grp"
     bitwidth: 16
+  }
+}
+actions {
+  preamble {
+    id: 29683729
+    name: "MyIngress.forward"
+    alias: "forward"
+  }
+  params {
+    id: 1
+    name: "dstAddr"
+    bitwidth: 48
+  }
+  params {
+    id: 2
+    name: "port"
+    bitwidth: 9
   }
 }
 type_info {

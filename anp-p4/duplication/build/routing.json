@@ -241,7 +241,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "routing.p4",
-        "line" : 256,
+        "line" : 261,
         "column" : 8,
         "source_fragment" : "MyDeparser"
       },
@@ -258,7 +258,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "routing.p4",
-        "line" : 234,
+        "line" : 239,
         "column" : 4,
         "source_fragment" : "update_checksum( ..."
       },
@@ -657,6 +657,121 @@
           }
         }
       ]
+    },
+    {
+      "name" : "MyIngress.forward",
+      "id" : 9,
+      "runtime_data" : [
+        {
+          "name" : "dstAddr",
+          "bitwidth" : 48
+        },
+        {
+          "name" : "port",
+          "bitwidth" : 9
+        }
+      ],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_spec"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 1
+            }
+          ],
+          "source_info" : {
+            "filename" : "routing.p4",
+            "line" : 148,
+            "column" : 4,
+            "source_fragment" : "standard_metadata.egress_spec = port; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "srcAddr"]
+            },
+            {
+              "type" : "field",
+              "value" : ["ethernet", "dstAddr"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "routing.p4",
+            "line" : 149,
+            "column" : 4,
+            "source_fragment" : "hdr.ethernet.srcAddr = hdr.ethernet.dstAddr"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "dstAddr"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 0
+            }
+          ],
+          "source_info" : {
+            "filename" : "routing.p4",
+            "line" : 150,
+            "column" : 4,
+            "source_fragment" : "hdr.ethernet.dstAddr = dstAddr; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ipv4", "ttl"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "+",
+                      "left" : {
+                        "type" : "field",
+                        "value" : ["ipv4", "ttl"]
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0xff"
+                      }
+                    }
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xff"
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "routing.p4",
+            "line" : 151,
+            "column" : 4,
+            "source_fragment" : "hdr.ipv4.ttl = hdr.ipv4.ttl - 1"
+          }
+        }
+      ]
     }
   ],
   "pipelines" : [
@@ -676,7 +791,7 @@
           "id" : 0,
           "source_info" : {
             "filename" : "routing.p4",
-            "line" : 192,
+            "line" : 196,
             "column" : 10,
             "source_fragment" : "tcp_duplicate"
           },
@@ -694,11 +809,12 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [8, 5, 2],
-          "actions" : ["MyIngress.multicast_forward", "MyIngress.drop", "NoAction"],
+          "action_ids" : [8, 9, 5, 2],
+          "actions" : ["MyIngress.multicast_forward", "MyIngress.forward", "MyIngress.drop", "NoAction"],
           "base_default_next" : null,
           "next_tables" : {
             "MyIngress.multicast_forward" : null,
+            "MyIngress.forward" : null,
             "MyIngress.drop" : null,
             "NoAction" : null
           },
@@ -714,7 +830,7 @@
           "id" : 1,
           "source_info" : {
             "filename" : "routing.p4",
-            "line" : 179,
+            "line" : 183,
             "column" : 8,
             "source_fragment" : "tcp_ack_exact"
           },
@@ -752,7 +868,7 @@
           "id" : 2,
           "source_info" : {
             "filename" : "routing.p4",
-            "line" : 164,
+            "line" : 168,
             "column" : 8,
             "source_fragment" : "ipv4_lpm"
           },
@@ -793,7 +909,7 @@
           "id" : 0,
           "source_info" : {
             "filename" : "routing.p4",
-            "line" : 207,
+            "line" : 212,
             "column" : 8,
             "source_fragment" : "hdr.tcp.isValid() && hdr.tcp.ack == 1 && hdr.tcp.syn == 0 && hdr.tcp.fin == 0"
           },
@@ -876,7 +992,7 @@
           "id" : 1,
           "source_info" : {
             "filename" : "routing.p4",
-            "line" : 210,
+            "line" : 215,
             "column" : 15,
             "source_fragment" : "hdr.tcp.isValid() && hdr.tcp.ack == 1"
           },
@@ -919,7 +1035,7 @@
           "id" : 2,
           "source_info" : {
             "filename" : "routing.p4",
-            "line" : 212,
+            "line" : 217,
             "column" : 15,
             "source_fragment" : "hdr.ipv4.isValid()"
           },
@@ -944,7 +1060,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "routing.p4",
-        "line" : 222,
+        "line" : 227,
         "column" : 8,
         "source_fragment" : "MyEgress"
       },
@@ -960,7 +1076,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "routing.p4",
-        "line" : 234,
+        "line" : 239,
         "column" : 4,
         "source_fragment" : "update_checksum( ..."
       },

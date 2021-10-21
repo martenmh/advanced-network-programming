@@ -1,10 +1,10 @@
 
-[2021-10-21 10:16:21.719] /p4.v1.P4Runtime/SetForwardingPipelineConfig
+[2021-10-21 11:33:16.555] /p4.v1.P4Runtime/SetForwardingPipelineConfig
 ---
-Message too long (31875 bytes)! Skipping log...
+Message too long (35617 bytes)! Skipping log...
 ---
 
-[2021-10-21 10:16:21.729] /p4.v1.P4Runtime/Write
+[2021-10-21 11:33:16.561] /p4.v1.P4Runtime/Write
 ---
 election_id {
   low: 1
@@ -25,7 +25,7 @@ updates {
 }
 ---
 
-[2021-10-21 10:16:21.733] /p4.v1.P4Runtime/Write
+[2021-10-21 11:33:16.563] /p4.v1.P4Runtime/Write
 ---
 election_id {
   low: 1
@@ -60,7 +60,7 @@ updates {
 }
 ---
 
-[2021-10-21 10:16:21.735] /p4.v1.P4Runtime/Write
+[2021-10-21 11:33:16.564] /p4.v1.P4Runtime/Write
 ---
 election_id {
   low: 1
@@ -95,7 +95,7 @@ updates {
 }
 ---
 
-[2021-10-21 10:16:21.737] /p4.v1.P4Runtime/Write
+[2021-10-21 11:33:16.564] /p4.v1.P4Runtime/Write
 ---
 election_id {
   low: 1
@@ -116,7 +116,7 @@ updates {
 }
 ---
 
-[2021-10-21 10:16:21.738] /p4.v1.P4Runtime/Write
+[2021-10-21 11:33:16.565] /p4.v1.P4Runtime/Write
 ---
 election_id {
   low: 1
@@ -151,7 +151,7 @@ updates {
 }
 ---
 
-[2021-10-21 10:16:21.740] /p4.v1.P4Runtime/Write
+[2021-10-21 11:33:16.566] /p4.v1.P4Runtime/Write
 ---
 election_id {
   low: 1
@@ -186,7 +186,7 @@ updates {
 }
 ---
 
-[2021-10-21 10:16:21.741] /p4.v1.P4Runtime/Write
+[2021-10-21 11:33:16.567] /p4.v1.P4Runtime/Write
 ---
 election_id {
   low: 1
@@ -202,6 +202,97 @@ updates {
         }
       }
       is_default_action: true
+    }
+  }
+}
+---
+
+[2021-10-21 11:33:16.569] /p4.v1.P4Runtime/Write
+---
+election_id {
+  low: 1
+}
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 35810578
+      match {
+        field_id: 1
+        lpm {
+          value: "\n\000\002\002"
+          prefix_len: 32
+        }
+      }
+      action {
+        action {
+          action_id: 17240535
+          params {
+            param_id: 1
+            value: "\000\001"
+          }
+        }
+      }
+    }
+  }
+}
+---
+
+[2021-10-21 11:33:16.570] /p4.v1.P4Runtime/Write
+---
+election_id {
+  low: 1
+}
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 35810578
+      match {
+        field_id: 1
+        lpm {
+          value: "\n\000\001\001"
+          prefix_len: 32
+        }
+      }
+      action {
+        action {
+          action_id: 29683729
+          params {
+            param_id: 1
+            value: "\010\000\000\000\001\021"
+          }
+          params {
+            param_id: 2
+            value: "\000\001"
+          }
+        }
+      }
+    }
+  }
+}
+---
+
+[2021-10-21 11:33:16.572] /p4.v1.P4Runtime/Write
+---
+election_id {
+  low: 1
+}
+updates {
+  type: INSERT
+  entity {
+    packet_replication_engine_entry {
+      multicast_group_entry {
+        multicast_group_id: 1
+        replicas {
+          egress_port: 3
+          instance: 1
+        }
+        replicas {
+          egress_port: 2
+          instance: 1
+        }
+      }
     }
   }
 }
