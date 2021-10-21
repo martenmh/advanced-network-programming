@@ -1,10 +1,10 @@
 
-[2021-10-21 11:33:16.508] /p4.v1.P4Runtime/SetForwardingPipelineConfig
+[2021-10-21 13:52:40.388] /p4.v1.P4Runtime/SetForwardingPipelineConfig
 ---
 Message too long (35630 bytes)! Skipping log...
 ---
 
-[2021-10-21 11:33:16.519] /p4.v1.P4Runtime/Write
+[2021-10-21 13:52:40.397] /p4.v1.P4Runtime/Write
 ---
 device_id: 2
 election_id {
@@ -26,7 +26,7 @@ updates {
 }
 ---
 
-[2021-10-21 11:33:16.521] /p4.v1.P4Runtime/Write
+[2021-10-21 13:52:40.401] /p4.v1.P4Runtime/Write
 ---
 device_id: 2
 election_id {
@@ -62,7 +62,7 @@ updates {
 }
 ---
 
-[2021-10-21 11:33:16.523] /p4.v1.P4Runtime/Write
+[2021-10-21 13:52:40.403] /p4.v1.P4Runtime/Write
 ---
 device_id: 2
 election_id {
@@ -98,7 +98,7 @@ updates {
 }
 ---
 
-[2021-10-21 11:33:16.524] /p4.v1.P4Runtime/Write
+[2021-10-21 13:52:40.406] /p4.v1.P4Runtime/Write
 ---
 device_id: 2
 election_id {
@@ -120,7 +120,7 @@ updates {
 }
 ---
 
-[2021-10-21 11:33:16.524] /p4.v1.P4Runtime/Write
+[2021-10-21 13:52:40.407] /p4.v1.P4Runtime/Write
 ---
 device_id: 2
 election_id {
@@ -156,7 +156,7 @@ updates {
 }
 ---
 
-[2021-10-21 11:33:16.525] /p4.v1.P4Runtime/Write
+[2021-10-21 13:52:40.409] /p4.v1.P4Runtime/Write
 ---
 device_id: 2
 election_id {
@@ -177,6 +177,100 @@ updates {
       action {
         action {
           action_id: 17029622
+          params {
+            param_id: 1
+            value: "\010\000\000\000\002\""
+          }
+          params {
+            param_id: 2
+            value: "\000\002"
+          }
+        }
+      }
+    }
+  }
+}
+---
+
+[2021-10-21 13:52:40.411] /p4.v1.P4Runtime/Write
+---
+device_id: 2
+election_id {
+  low: 1
+}
+updates {
+  type: MODIFY
+  entity {
+    table_entry {
+      table_id: 35810578
+      action {
+        action {
+          action_id: 25652968
+        }
+      }
+      is_default_action: true
+    }
+  }
+}
+---
+
+[2021-10-21 13:52:40.412] /p4.v1.P4Runtime/Write
+---
+device_id: 2
+election_id {
+  low: 1
+}
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 35810578
+      match {
+        field_id: 1
+        lpm {
+          value: "\n\000\001\001"
+          prefix_len: 32
+        }
+      }
+      action {
+        action {
+          action_id: 29683729
+          params {
+            param_id: 1
+            value: "\010\000\000\000\001\021"
+          }
+          params {
+            param_id: 2
+            value: "\000\001"
+          }
+        }
+      }
+    }
+  }
+}
+---
+
+[2021-10-21 13:52:40.414] /p4.v1.P4Runtime/Write
+---
+device_id: 2
+election_id {
+  low: 1
+}
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 35810578
+      match {
+        field_id: 1
+        lpm {
+          value: "\n\000\002\002"
+          prefix_len: 32
+        }
+      }
+      action {
+        action {
+          action_id: 29683729
           params {
             param_id: 1
             value: "\010\000\000\000\002\""
