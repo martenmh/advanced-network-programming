@@ -31,9 +31,6 @@
         "port": 1
       }
     },
-
-
-
     {
       "table": "MyIngress.tcp_ack_exact",
       "default_action": true,
@@ -62,7 +59,5 @@
         "port": 1
       }
     }
-
-
   ]
 }

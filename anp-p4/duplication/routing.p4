@@ -156,6 +156,10 @@ control MyIngress(inout headers hdr,
       ipv4_forward(dstAddr, port);
   }
 
+  action multicast_forward(bit<16> mcast_grp) {
+      standard_metadata.mcast_grp = mcast_grp;
+  }
+
   // IPv4 table
   table ipv4_lpm {
     key = {
@@ -185,12 +189,27 @@ control MyIngress(inout headers hdr,
     default_action = drop();
   }
 
+    table tcp_duplicate {
+            key = {
+                    hdr.ipv4.dstAddr : lpm;
+            }
+            actions = {
+                multicast_forward;
+                drop;
+                NoAction;
+            }
+            size = 1024;
+            default_action = drop();
+    }
+
   apply {
+    // if packet has only ack flag, then multicast it
+    if (hdr.tcp.isValid() && hdr.tcp.ack == 1 && hdr.tcp.syn == 0 && hdr.tcp.fin == 0) {
+      tcp_duplicate.apply();
     // if packet is an ACK, send to 1-3-2 path
-    if (hdr.tcp.isValid() && hdr.tcp.ack == 1) {
-      tcp_ack_exact.apply();
-    // send all others to 1-2 path
-    } else if (hdr.ipv4.isValid()) {
+    } else if (hdr.tcp.isValid() && hdr.tcp.ack == 1) {
+        tcp_ack_exact.apply();
+    } else if (hdr.ipv4.isValid()) { // send all others to 1-2 path
       ipv4_lpm.apply();
     }
   }

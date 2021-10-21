@@ -47,6 +47,29 @@ tables {
   }
   size: 1024
 }
+tables {
+  preamble {
+    id: 35810578
+    name: "MyIngress.tcp_duplicate"
+    alias: "tcp_duplicate"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.ipv4.dstAddr"
+    bitwidth: 32
+    match_type: LPM
+  }
+  action_refs {
+    id: 17240535
+  }
+  action_refs {
+    id: 25652968
+  }
+  action_refs {
+    id: 21257015
+  }
+  size: 1024
+}
 actions {
   preamble {
     id: 21257015
@@ -94,6 +117,18 @@ actions {
     id: 2
     name: "port"
     bitwidth: 9
+  }
+}
+actions {
+  preamble {
+    id: 17240535
+    name: "MyIngress.multicast_forward"
+    alias: "multicast_forward"
+  }
+  params {
+    id: 1
+    name: "mcast_grp"
+    bitwidth: 16
   }
 }
 type_info {
